@@ -1,0 +1,272 @@
+$webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-admin-page-resources")
+
+<html>
+<head>
+    <meta name="decorator" content="atl.admin"/>
+    <title>$i18n.getText("jigit.admin.tab.page.caption")</title>
+</head>
+<body>
+    #if($action.hasAdminPermission())
+    <h1>$i18n.getText("jigit.admin.tab.title")</h1>
+    <p>
+
+    <div id="page-message-container"></div>
+
+    <table width="100%" class="repo-list" cellpadding="0" cellspacing="0">
+        <thead>
+        <tr>
+            <th width="30%">
+                $i18n.getText("jigit.settings.table.columns.repo")
+            </th>
+            <th>
+                $i18n.getText("jigit.settings.table.columns.url")
+            </th>
+            <th>
+                $i18n.getText("jigit.settings.table.columns.jigit.project")
+            </th>
+            <th width=20%">
+                $i18n.getText("jigit.settings.table.columns.branches")
+            </th>
+            <th width="10%">
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+            #foreach ($jigitRepo in $action.getJigitRepos())
+                #set($settingsKey = $jigitRepo.getRepoName())
+            <tr>
+                <td data-val="$jigitRepo.getRepoName()" data-name="repo_name">
+                    $jigitRepo.getRepoName()
+                    <br>
+                    <br>
+                    #if($jigitRepo.isEnabled())
+                        <span class="aui-lozenge aui-lozenge-success">$i18n.getText(
+                            'jigit.settings.table.columns.enabled')</span>
+                    #else
+                        <span class="aui-lozenge">$i18n.getText('jigit.settings.table.columns.disabled')</span>
+                    #end
+                    #if($jigitRepo.getSleepTo() >= $action.getCurrentTimeMillis())
+                        <div class="aui-message aui-message-info closeable">
+                            $i18n.getText('jigit.settings.table.columns.limit.exceeded',
+                                $action.getSleepToFormatted($jigitRepo.getSleepTo()))
+                        </div>
+                    #end
+                </td>
+                <td data-val="$jigitRepo.getServerUrl()" data-name="url">
+                    $jigitRepo.getServerUrl()
+                </td>
+                <td data-val="$jigitRepo.getRepositoryId()" data-name="repository_id">
+                    $jigitRepo.getRepositoryId()
+                </td>
+                <td data-val="$jigitRepo.getDefaultBranch()" data-name="def_branch" style="text-align: left;">
+                    <table class="branch-list" cellpadding="0" cellspacing="0">
+                        <tbody>
+                        <tr>
+                            <td>
+                                <table class="branches">
+                                    <tr>
+                                        <td>
+                                            $jigitRepo.getDefaultBranch()
+                                            <span class="aui-badge" title="Commits">
+                                                $action.getCommitCount($jigitRepo.getRepoName(), $jigitRepo.getDefaultBranch())
+                                            </span>
+                                        </td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                            #foreach($branch in $jigitRepo.getBranches())
+                            <tr>
+                                <td>
+                                    <table class="branches">
+                                        <tr>
+                                            <td>
+                                                $branch
+                                                <span class="aui-badge" title="Commits">
+                                                    $action.getCommitCount($jigitRepo.getRepoName(), $branch)
+                                        </span>
+                                            </td>
+                                            <td>
+                                                <form id="remove-repo-branch-${settingsKey}-${branch}" method="post"
+                                                      onsubmit="return confirm('$i18n.getText("jigit.confirm.delete.branch")');"
+                                                      action="$action.getBaseUrl()/rest/jigit/1.0/repo/$settingsKey/branch/$branch/remove">
+                                                    <input class="aui-button" type="submit"
+                                                           value="$i18n.getText('jigit.buttons.delete')">
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            #end
+                        <tr>
+                            <td>
+                                <table class="branches">
+                                    <tr>
+                                        <td>
+                                            <form id="add-jigit-repo-branch-${settingsKey}" method="post" class="aui"
+                                                  action="$action.getBaseUrl()/rest/jigit/1.0/repo/$settingsKey/branch/add">
+                                                <input type="text" name="branch" class="text form-data">
+                                            </form>
+                                        </td>
+                                        <td>
+                                            <input class="aui-button add-jigit-repo-branch-button"
+                                                   type="button"
+                                                   value="$i18n.getText('jigit.buttons.add')">
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </td>
+                <td>
+                    <input type="hidden" data-val="$action.getUnits($jigitRepo.getRequestTimeout())"
+                           data-name="request_timeout">
+                    <input type="hidden" data-val="$action.getUnits($jigitRepo.getSleepTimeout())"
+                           data-name="sleep_timeout">
+                    <input type="hidden" data-val="$jigitRepo.getSleepRequests()" data-name="sleep_requests">
+                    <a href="#repo-actions-$settingsKey" aria-owns="repo-actions-$settingsKey" aria-haspopup="true"
+                       class="aui-button aui-dropdown2-trigger aui-style-default">
+                        $i18n.getText('jigit.buttons.actions')
+                    </a>
+
+                    <div id="repo-actions-$settingsKey" class="aui-dropdown2 aui-style-default">
+                        <ul class="aui-list-truncate">
+                            <li>
+                                <a href="#" class="edit-jigit-repo-button">$i18n.getText('jigit.buttons.edit')</a>
+                            </li>
+                            <li>
+                                <a href="#" class="activity-jigit-repo-button" data-form="activity-jigit-repo">
+                                    #if($jigitRepo.isEnabled())
+                                    $i18n.getText('jigit.buttons.disable')
+                                    #else
+                                        $i18n.getText('jigit.buttons.enable')
+                                    #end
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="remove-jigit-repo-button" data-form="remove-jigit-repo">
+                                    $i18n.getText('jigit.buttons.delete')
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <form class="activity-jigit-repo" method="post"
+                          action="$action.getBaseUrl()/rest/jigit/1.0/repo/$settingsKey/activity">
+                        <input type="hidden" name="enabled" #if($jigitRepo.isEnabled()) value="false" #else
+                               value="true" #end>
+                    </form>
+
+                    <form class="remove-jigit-repo" method="post"
+                          onsubmit="return confirm('$i18n.getText("jigit.confirm.delete.repo")');"
+                          action="$action.getBaseUrl()/rest/jigit/1.0/repo/$settingsKey/remove">
+                    </form>
+                </td>
+            </tr>
+            #end
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>
+                <input type="button" id="add-jigit-repo-button" value="$i18n.getText('jigit.buttons.add')"
+                       class="aui-button"/>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div id="add-jigit-repo-container" style="display: none;" class="aui-panel">
+        <div class="message-container"></div>
+        <form id="add-jigit-repo-form" method="post" class="aui"
+              action="$action.getBaseUrl()/rest/jigit/1.0/repo/add">
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.repo")</label>
+                <input type="text" name="repo_name" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.url")</label>
+                <input type="text" name="url" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.token")</label>
+                <input type="password" name="token" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.jigit.project")</label>
+                <input type="text" name="repository_id" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.default.branch")</label>
+                <input type="text" name="def_branch" class="text form-data" value="master"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.request.timeout")</label>
+                <input type="text" name="request_timeout" class="text form-data" value="10"/> $i18n.getText(
+                "jigit.settings.table.columns.sleep.timeunit")
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.sleep")</label>
+                <input type="text" name="sleep_timeout" class="text form-data" value="10"/> $i18n.getText(
+                "jigit.settings.table.columns.sleep.timeunit")
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.sleep.each")</label>
+                <input type="text" name="sleep_requests" class="text form-data" value="100"/> $i18n.getText(
+                "jigit.settings.table.columns.sleep.each.requests")
+            </div>
+        </form>
+    </div>
+
+    <div id="edit-jigit-repo-container" style="display: none;" class="aui-panel">
+        <div class="message-container"></div>
+        <form id="edit-jigit-repo-form" method="post" class="aui"
+              action="$action.getBaseUrl()/rest/jigit/1.0/repo/edit">
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.url")</label>
+                <input type="text" name="url" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.token")</label>
+                <input type="password" name="token" class="text form-data" disabled/>
+            </div>
+            <div class="field-group">
+                <label for="change_token">Change token</label>
+                <input type="checkbox" name="change_token" id="change_token" class="checkbox form-data">
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.jigit.project")</label>
+                <input type="text" name="repository_id" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.default.branch")</label>
+                <input type="text" name="def_branch" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.request.timeout")</label>
+                <input type="text" name="request_timeout" class="text form-data"/> $i18n.getText(
+                "jigit.settings.table.columns.sleep.timeunit")
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.sleep")</label>
+                <input type="text" name="sleep_timeout" class="text form-data"/> $i18n.getText(
+                "jigit.settings.table.columns.sleep.timeunit")
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.sleep.each")</label>
+                <input type="text" name="sleep_requests" class="text form-data"/> $i18n.getText(
+                "jigit.settings.table.columns.sleep.each.requests")
+            </div>
+            <input type="hidden" name="repo_name" class="form-data">
+        </form>
+    </div>
+    #else
+    <div class="errorArea">$i18n.getText("jigit.error.permissions.invalid")</div>
+    #end
+</body>
+</html>

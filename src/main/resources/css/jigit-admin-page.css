@@ -1,0 +1,45 @@
+.repo-list {
+    width: 100%;
+}
+
+.repo-list th {
+    background-color: #f0f0f0;
+    padding: 5px 0 5px 3px;
+}
+
+.repo-list td {
+    padding: 5px 0 5px 3px;
+    vertical-align: top;
+    text-align: center;
+    border-top: 1px solid #f0f0f0;
+}
+
+.repo-list td:last-child {
+    text-align: right;
+}
+
+.branch-list {
+    width: 100%;
+}
+
+.branch-list td {
+    padding: 5px 0 5px 3px;
+    text-align: left;
+    border: 0;
+}
+
+.branches {
+    padding: 0;
+    width: 100%;
+}
+
+.branches td:first-child {
+    padding: 0;
+    text-align: left;
+}
+
+.branches td:last-child {
+    padding: 0;
+    text-align: right;
+    width: 70px;
+}

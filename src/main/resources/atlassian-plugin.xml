@@ -1,0 +1,117 @@
+<atlassian-plugin key="${project.groupId}.${project.artifactId}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}"/>
+        <param name="plugin-icon">/images/icon.png</param>
+        <param name="plugin-logo">/images/plugin_logo.png</param>
+        <param name="vendor-icon">/images/icon.png</param>
+        <param name="vendor-logo">/images/vendor_logo.png</param>
+        <param name="configure.url">/secure/JigitAdminAction.jspa</param>
+        <!--<param name="post.install.url">/secure/JigitAdminAction.jspa</param>-->
+    </plugin-info>
+
+    <component-import key="jigit-i18n-resolver" interface="com.atlassian.sal.api.message.I18nResolver"/>
+
+    <resource type="i18n" name="i18n" location="i18n/jigit-plugin"/>
+
+    <rest key="jigit-rest-service" path="/jigit" version="1.0">
+        <description>Plugin REST service</description>
+    </rest>
+
+    <component-import key="jigit-applicationProperties">
+        <interface>com.atlassian.sal.api.ApplicationProperties</interface>
+    </component-import>
+
+    <component-import key="jigit-plugin-scheduler">
+        <description>SAL Scheduler</description>
+        <interface>com.atlassian.sal.api.scheduling.PluginScheduler</interface>
+    </component-import>
+
+    <component-import key="jigit-pluginSettingsFactory">
+        <interface>com.atlassian.sal.api.pluginsettings.PluginSettingsFactory</interface>
+    </component-import>
+
+    <component-import key="jigit-ao" name="Active Objects service"
+                      interface="com.atlassian.activeobjects.external.ActiveObjects">
+        <description>Component to access Active Objects functionality from the plugin</description>
+    </component-import>
+
+    <component key="jigit-tx-processor" name="Transactional Annotation Processor"
+               class="com.atlassian.activeobjects.external.TransactionalAnnotationProcessor">
+        <decription>Processes @Transactional annotations.</decription>
+    </component>
+
+    <ao key="jigit-ao-entities">
+        <description>Plugin AO entities module</description>
+        <entity>jigit.entities.Commit</entity>
+        <entity>jigit.entities.CommitIssue</entity>
+        <entity>jigit.entities.CommitDiff</entity>
+        <entity>jigit.entities.QueueItem</entity>
+    </ao>
+
+    <component key="jigit-commit-service" name="AO Commit Service"
+               class="jigit.ao.CommitManagerImpl"/>
+
+    <component key="jigit-queue-item-service" name="AO Queue Item Service"
+               class="jigit.ao.QueueItemManagerImpl"/>
+
+    <component key="jigit-jigit-indexer" name="Jigit Indexer"
+               class="jigit.indexer.JigitIndexer"/>
+
+    <component key="jigit-index-job" class="jigit.job.JigitIndexJobScheduler"
+               system="true" public="true">
+        <description>The plugin component that schedules Jigit index tasks.</description>
+        <interface>com.atlassian.sal.api.lifecycle.LifecycleAware</interface>
+    </component>
+
+    <component key="jigit-settings-manager" name="Jigit Settings Manager"
+               class="jigit.settings.JigitSettingsManagerImpl"/>
+
+    <component key="jigit-persist-strategy-factory" class="jigit.indexer.PersistStrategyFactoryImpl"/>
+
+    <component key="jigit-api-adapter-factory" class="jigit.indexer.api.APIAdapterFactory"/>
+
+    <component key="jigit-date-formatter" class="jigit.common.JigitDateFormatter"/>
+
+    <web-item key="jigit-admin-item" name="Jigit Admin Web Item" section="system.admin/globalsettings">
+        <label key="jigit.admin.tab.label"/>
+        <condition class="com.atlassian.jira.plugin.webfragment.conditions.JiraGlobalPermissionCondition">
+            <param name="permission">admin</param>
+        </condition>
+        <link linkId="jigit-admin-action">/secure/JigitAdminAction.jspa</link>
+    </web-item>
+
+    <webwork1 key="jigit-admin-page" name="Admin page" class="java.lang.Object">
+        <actions>
+            <action name="jigit.webworks.JigitAdminAction" alias="JigitAdminAction">
+                <view name="input">/templates/jigit-admin-page.vm</view>
+                <view name="success">/templates/jigit-admin-page.vm</view>
+            </action>
+        </actions>
+    </webwork1>
+
+    <web-resource key="jigit-admin-page-resources" name="Admin page Web Resources">
+        <transformation extension="js">
+            <transformer key="jsI18n"/>
+        </transformation>
+        <resource type="download" name="jigit-admin-page.js" location="/js/jigit-admin-page.js"/>
+        <resource type="download" name="jigit-admin-page.css" location="/css/jigit-admin-page.css"/>
+    </web-resource>
+
+    <issue-tabpanel key="jigit-tab-panel" name="Jigit tab panel"
+                    i18n-name-key="jigit-tab-panel.name" class="jigit.tabpanels.JigitTabPanel">
+        <description key="jigit-tab-panel.description">Jigit</description>
+        <label key="jigit-tab-panel.label"/>
+        <resource type="velocity" name="view" location="templates/jigit-tab-panel.vm"/>
+        <supports-ajax-load>true</supports-ajax-load>
+        <default>true</default>
+    </issue-tabpanel>
+
+    <web-resource key="jigit-tab-panel-resources" name="Jigit tab panel Web Resources">
+        <resource type="download" name="jigit-tabpanel.css" location="/css/jigit-tabpanel.css"/>
+        <resource type="download" name="jigit-tabpanel.js" location="/js/jigit-tabpanel.js"/>
+        <resource type="download" name="copy.png" location="/images/copy.png"/>
+        <context>jira.view.issue</context>
+    </web-resource>
+</atlassian-plugin>

@@ -1,0 +1,62 @@
+.commit {
+    width: 100%;
+}
+
+.commit-change-set {
+    width: 100%;
+}
+
+.commit th {
+    background-color: #f0f0f0;
+    padding: 5px 0 5px 3px;
+}
+
+.commit td {
+    padding: 5px 0 5px 3px;
+    vertical-align: top;
+    text-align: center;
+    border-top: 1px solid #f0f0f0;
+}
+
+.commit-change-set td {
+    padding: 3px 0 3px 3px;
+    text-align: left;
+    border: 0;
+}
+
+.commit-change-set tr:first-child td{
+    border-top: 1px solid #f0f0f0;
+}
+
+.commit .message {
+    white-space: pre-wrap;
+    padding: 0 0 5px 0;
+}
+
+.change-set .action {
+    color: #999933;
+    font-weight: bold;
+    font-size: smaller;
+}
+
+.change-set .action.action_1 {
+    color: #009900;
+}
+
+.change-set .action.action_4 {
+    color: #990000;
+}
+
+.jigit-copy-to-clip {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 2px;
+    height: 16px;
+    width: 16px;
+    cursor: pointer;
+}
+
+.sha1:hover .jigit-copy-to-clip {
+    display: block;
+}
