@@ -73,7 +73,7 @@
                     <!-- TODO remove on production-->
                     <enableQuickReload>true</enableQuickReload>
                     <enableFastdev>false</enableFastdev>
-                    <productDataPath>aux/generated-test-resources.zip</productDataPath>
+                    <productDataPath>aux_stuff/generated-test-resources.zip</productDataPath>
                     <!-- TODO remove on production-->
                 </configuration>
             </plugin>

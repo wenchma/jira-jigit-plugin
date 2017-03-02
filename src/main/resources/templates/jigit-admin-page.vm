@@ -187,11 +187,15 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
               action="$action.getBaseUrl()/rest/jigit/1.0/repo/add">
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.repo")</label>
-                <input type="text" name="repo_name" class="text form-data"/>
+                <input type="text" name="repo_name" class="text form-data" placeholder="my_repository"/>
             </div>
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.url")</label>
-                <input type="text" name="url" class="text form-data"/>
+                <input type="text" name="url" list="urls" class="text form-data" placeholder="https://github.com"/>
+                <datalist id="urls">
+                    <option value="https://github.com"/>
+                    <option value="https://gitlab.com"/>
+                </datalist>
             </div>
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.token")</label>
@@ -199,7 +203,7 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
             </div>
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.jigit.project")</label>
-                <input type="text" name="repository_id" class="text form-data"/>
+                <input type="text" name="repository_id" class="text form-data" placeholder="my_repository"/>
             </div>
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.default.branch")</label>
@@ -229,7 +233,11 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
               action="$action.getBaseUrl()/rest/jigit/1.0/repo/edit">
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.url")</label>
-                <input type="text" name="url" class="text form-data"/>
+                <input type="text" name="url" list="urls" class="text form-data" placeholder="https://github.com"/>
+                <datalist id="urls">
+                    <option value="https://github.com"/>
+                    <option value="https://gitlab.com"/>
+                </datalist>
             </div>
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.token")</label>
