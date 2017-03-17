@@ -32,7 +32,7 @@ public final class GitHub {
 
     @NotNull
     public static GitHub connect(@NotNull String oauthToken, @NotNull ErrorListener errorListener) {
-        return connect(oauthToken, 0, ErrorListener.EMPTY);
+        return connect(oauthToken, 0, errorListener);
     }
 
     @NotNull
