@@ -25,7 +25,7 @@ public final class ApiHttpRequestor {
     @NotNull
     private HttpMethod httpMethod = HttpMethod.GET;
     @NotNull
-    private final String header;
+    private final String authorization;
     @NotNull
     private final ErrorListener errorListener;
 
@@ -33,9 +33,9 @@ public final class ApiHttpRequestor {
         this(url, requestTimeout, errorListener, "");
     }
 
-    public ApiHttpRequestor(@NotNull URL url, int requestTimeout, @NotNull ErrorListener errorListener, @NotNull String header) {
+    public ApiHttpRequestor(@NotNull URL url, int requestTimeout, @NotNull ErrorListener errorListener, @NotNull String authorization) {
         this.url = url;
-        this.header = header;
+        this.authorization = authorization;
         this.requestTimeout = requestTimeout;
         this.errorListener = errorListener;
     }
@@ -52,8 +52,8 @@ public final class ApiHttpRequestor {
         try {
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod(httpMethod.name());
-            if (httpMethod == HttpMethod.GET && !header.isEmpty()) {
-                connection.getHeaderField(header);
+            if (!authorization.isEmpty()) {
+                connection.setRequestProperty("Authorization", authorization);
             }
             if (HttpMethod.POST == httpMethod) {
                 connection.setDoOutput(true);

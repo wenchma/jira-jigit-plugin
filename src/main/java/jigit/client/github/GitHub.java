@@ -53,7 +53,7 @@ public final class GitHub {
 
     @NotNull
     public ApiHttpRequestor get(@NotNull String endpointUrl) throws IOException {
-        return new ApiHttpRequestor(getAPIUrl(endpointUrl), requestTimeout, errorListener, "Authorization: token " + oauthToken);
+        return new ApiHttpRequestor(getAPIUrl(endpointUrl), requestTimeout, errorListener, "token " + oauthToken);
     }
 
     @NotNull
