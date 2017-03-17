@@ -3,6 +3,7 @@ package jigit.indexer;
 import com.atlassian.jira.util.JiraKeyUtils;
 import jigit.ao.CommitManager;
 import jigit.ao.QueueItemManager;
+import jigit.client.github.LimitExceededException;
 import jigit.indexer.api.*;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
@@ -100,9 +101,9 @@ public final class JigitIndexer {
             try {
                 final Map<String, ForcePushHandler> branchFPHandlers = getBranchForcePushHandlers();
                 final String repositoryId = repo.getRepositoryId();
-                for (String branch : branchFPHandlers.keySet()) {
-                    branchFPHandlers.get(branch).handle(repo, branch);
-                    indexRepoBranch(repositoryId, branch);
+                for (Map.Entry<String, ForcePushHandler> entry : branchFPHandlers.entrySet()) {
+                    entry.getValue().handle(repo, entry.getKey());
+                    indexRepoBranch(repositoryId, entry.getKey());
                 }
             } catch (LimitExceededException ignored) {
                 LOG.warn("Repository request limit exceeded for " + repo.getRepoName()

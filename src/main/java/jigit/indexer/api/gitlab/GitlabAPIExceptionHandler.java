@@ -1,6 +1,6 @@
 package jigit.indexer.api.gitlab;
 
-import jigit.indexer.api.LimitExceededException;
+import jigit.client.github.LimitExceededException;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
 import org.gitlab.api.GitlabAPIException;

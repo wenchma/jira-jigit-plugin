@@ -1,4 +1,4 @@
-package jigit.indexer.api;
+package jigit.client.github;
 
 import java.io.IOException;
 

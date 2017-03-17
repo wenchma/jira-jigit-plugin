@@ -1,26 +1,31 @@
-package jigit.indexer.api.github;
+package jigit.client.github;
 
-import jigit.indexer.api.LimitExceededException;
+import api.client.http.ErrorListener;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
 import org.jetbrains.annotations.NotNull;
-import org.kohsuke.github.RateLimitHandler;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
-public final class RateLimitHandlerJigitImpl extends RateLimitHandler {
+public final class GitHubErrorListener implements ErrorListener {
+    @NotNull
+    private static final String LIMIT_THRESHOLD_VALUE = "0";
     @NotNull
     private final JigitSettingsManager settingsManager;
     @NotNull
     private final JigitRepo repo;
 
-    public RateLimitHandlerJigitImpl(@NotNull JigitSettingsManager settingsManager, @NotNull JigitRepo repo) {
+    public GitHubErrorListener(@NotNull JigitSettingsManager settingsManager, @NotNull JigitRepo repo) {
         this.settingsManager = settingsManager;
         this.repo = repo;
     }
 
+    @Override
     public void onError(@NotNull IOException e, @NotNull HttpURLConnection httpURLConnection) throws IOException {
+        if (!LIMIT_THRESHOLD_VALUE.equals(httpURLConnection.getHeaderField("X-RateLimit-Remaining"))) {
+            return;
+        }
         final String resetAt = httpURLConnection.getHeaderField("X-RateLimit-Reset");
         if (resetAt != null) {
             repo.setSleepTo(Long.parseLong(resetAt) * 1000);

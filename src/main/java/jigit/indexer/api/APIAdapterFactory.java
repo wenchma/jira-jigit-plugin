@@ -1,27 +1,22 @@
 package jigit.indexer.api;
 
+import jigit.client.github.GitHub;
+import jigit.client.github.GitHubErrorListener;
+import jigit.client.github.GitHubRepositoryAPI;
 import jigit.indexer.api.github.GithubAPIAdapter;
-import jigit.indexer.api.github.RateLimitHandlerJigitImpl;
 import jigit.indexer.api.gitlab.GitlabAPIAdapter;
 import jigit.indexer.api.gitlab.GitlabAPIExceptionHandler;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
-import org.apache.log4j.Logger;
 import org.gitlab.api.GitlabAPI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.kohsuke.github.*;
-import org.kohsuke.github.extras.ImpatientHttpConnector;
 
-import java.io.IOException;
-import java.util.Properties;
 import java.util.regex.Pattern;
 
 public final class APIAdapterFactory {
     @NotNull
     private static final Pattern GITHUB_URL_REGEXP = Pattern.compile("^.+github.com.*$", Pattern.CASE_INSENSITIVE);
-    @NotNull
-    private static final Logger LOG = Logger.getLogger(APIAdapterFactory.class);
     @NotNull
     private final JigitSettingsManager settingsManager;
 
@@ -50,25 +45,12 @@ public final class APIAdapterFactory {
 
     @Nullable
     private GithubAPIAdapter getGithubAPIAdapter(@NotNull JigitRepo repo) {
-        try {
-            final int requestTimeout = repo.getRequestTimeout();
-            final ImpatientHttpConnector connector =
-                    new ImpatientHttpConnector(HttpConnector.DEFAULT, requestTimeout, requestTimeout);
-            final RateLimitHandler rateLimitHandler = new RateLimitHandlerJigitImpl(settingsManager, repo);
-            final GitHub gitHub = GitHubBuilder.fromProperties(new Properties()).
-                    withOAuthToken(repo.getToken()).
-                    withConnector(connector).
-                    withRateLimitHandler(rateLimitHandler).build();
+        final int requestTimeout = repo.getRequestTimeout();
+        final GitHubErrorListener errorListener = new GitHubErrorListener(settingsManager, repo);
+        final GitHubRepositoryAPI repositoryAPI = GitHub
+                .connect(repo.getToken(), requestTimeout, errorListener)
+                .getRepositoryAPI(repo.getRepositoryId());
 
-            final GHRepository repository = gitHub.getRepository(repo.getRepositoryId());
-
-            return new GithubAPIAdapter(repository);
-        } catch (LimitExceededException e) {
-            LOG.info("API rate limit reached. Current repo: " + repo.getRepoName());
-            return null;
-        } catch (IOException e) {
-            LOG.error("Couldn't connect to GitHub repository " + repo.getRepoName(), e);
-            return null;
-        }
+        return new GithubAPIAdapter(repositoryAPI);
     }
 }
