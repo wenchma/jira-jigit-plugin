@@ -1,6 +1,7 @@
-package jigit.client.github;
+package jigit.indexer.api.github;
 
 import api.client.http.ErrorListener;
+import jigit.indexer.api.LimitExceededException;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
 import org.jetbrains.annotations.NotNull;

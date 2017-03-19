@@ -54,16 +54,6 @@
             <artifactId>commons-io</artifactId>
             <version>2.5</version>
         </dependency>
-        <dependency>
-            <groupId>org.gitlab</groupId>
-            <artifactId>java-gitlab-api</artifactId>
-            <version>1.2.3</version>
-        </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.kohsuke</groupId>-->
-            <!--<artifactId>github-api</artifactId>-->
-            <!--<version>1.72</version>-->
-        <!--</dependency>-->
     </dependencies>
     <build>
         <plugins>
@@ -76,10 +66,9 @@
                     <productVersion>${jira.version}</productVersion>
                     <productDataVersion>${jira.version}</productDataVersion>
                     <!-- TODO remove on production-->
-					<jvmArgs>-Xmx512m -XX:MaxPermSize=256m</jvmArgs>
                     <enableQuickReload>true</enableQuickReload>
                     <enableFastdev>false</enableFastdev>
-                    <!-- <productDataPath>aux_stuff/generated-test-resources.zip</productDataPath> -->
+                    <productDataPath>aux_stuff/generated-test-resources.zip</productDataPath>
                     <!-- TODO remove on production-->
                 </configuration>
             </plugin>

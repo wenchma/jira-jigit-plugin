@@ -6,15 +6,15 @@ import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.util.Map;
 
-public final class ApiHttpRequestor {
+public final class ApiHttpRequester {
     @NotNull
     private static final String ENCODING = "UTF-8";
     @NotNull
@@ -25,23 +25,22 @@ public final class ApiHttpRequestor {
     @NotNull
     private HttpMethod httpMethod = HttpMethod.GET;
     @NotNull
-    private final String authorization;
+    private final Map<String, String> requestProperties;
     @NotNull
     private final ErrorListener errorListener;
 
-    public ApiHttpRequestor(@NotNull URL url, int requestTimeout, @NotNull ErrorListener errorListener) {
-        this(url, requestTimeout, errorListener, "");
-    }
-
-    public ApiHttpRequestor(@NotNull URL url, int requestTimeout, @NotNull ErrorListener errorListener, @NotNull String authorization) {
+    public ApiHttpRequester(@NotNull URL url,
+                            int requestTimeout,
+                            @NotNull ErrorListener errorListener,
+                            @NotNull Map<String, String> requestProperties) {
         this.url = url;
-        this.authorization = authorization;
+        this.requestProperties = requestProperties;
         this.requestTimeout = requestTimeout;
         this.errorListener = errorListener;
     }
 
     @NotNull
-    public ApiHttpRequestor withMethod(@NotNull HttpMethod method) {
+    public ApiHttpRequester withMethod(@NotNull HttpMethod method) {
         this.httpMethod = method;
         return this;
     }
@@ -50,19 +49,27 @@ public final class ApiHttpRequestor {
     public <T> T withResultOf(@NotNull Class<T> type) throws IOException {
         HttpURLConnection connection = null;
         try {
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod(httpMethod.name());
-            if (!authorization.isEmpty()) {
-                connection.setRequestProperty("Authorization", authorization);
-            }
-            if (HttpMethod.POST == httpMethod) {
-                connection.setDoOutput(true);
-            }
-
+            connection = buildConnection();
             return parse(connection, type);
         } finally {
             IOUtils.close(connection);
         }
+    }
+
+    @NotNull
+    private HttpURLConnection buildConnection() throws IOException {
+        final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        if (requestTimeout > 0) {
+            connection.setReadTimeout(requestTimeout);
+        }
+        connection.setRequestMethod(httpMethod.name());
+        for (Map.Entry<String, String> parameter : requestProperties.entrySet()) {
+            connection.setRequestProperty(parameter.getKey(), parameter.getValue());
+        }
+        if (HttpMethod.POST == httpMethod) {
+            connection.setDoOutput(true);
+        }
+        return connection;
     }
 
     @SuppressWarnings("OverlyBroadCatchBlock")
@@ -73,7 +80,7 @@ public final class ApiHttpRequestor {
             reader = new InputStreamReader(connection.getInputStream(), ENCODING);
             return GSON.fromJson(reader, type);
         } catch (IOException e) {
-            handleAPIError(e, connection);
+            handleError(e, connection);
         } finally {
             IOUtils.closeQuietly(reader);
         }
@@ -81,10 +88,7 @@ public final class ApiHttpRequestor {
         return null;
     }
 
-    private void handleAPIError(@NotNull IOException e, @NotNull HttpURLConnection connection) throws IOException {
-        if (e instanceof FileNotFoundException) {
-            throw e;
-        }
+    private void handleError(@NotNull IOException e, @NotNull HttpURLConnection connection) throws IOException {
         if (e instanceof SocketTimeoutException && requestTimeout > 0) {
             throw e;
         }

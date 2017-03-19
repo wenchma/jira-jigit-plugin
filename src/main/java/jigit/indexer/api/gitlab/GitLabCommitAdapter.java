@@ -1,37 +1,34 @@
 package jigit.indexer.api.gitlab;
 
+import api.APIException;
+import jigit.client.gitlab.GitLabRepositoryAPI;
+import jigit.client.gitlab.dto.GitLabCommit;
+import jigit.client.gitlab.dto.GitLabFile;
 import jigit.indexer.api.CommitAdapter;
 import jigit.indexer.api.CommitFileAdapter;
 import jigit.indexer.api.RequestsCounter;
-import org.gitlab.api.GitlabAPI;
-import org.gitlab.api.GitlabAPIException;
-import org.gitlab.api.models.GitlabCommit;
-import org.gitlab.api.models.GitlabCommitDiff;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.*;
 
-public final class GitlabCommitAdapter implements CommitAdapter {
+public final class GitLabCommitAdapter implements CommitAdapter {
     @NotNull
-    private final GitlabCommit gitlabCommit;
+    private final GitLabCommit gitlabCommit;
     @NotNull
-    private final GitlabAPI gitlabAPI;
+    private final GitLabRepositoryAPI repositoryAPI;
     @NotNull
     private final RequestsCounter requestsCounter;
     @NotNull
-    private final String repository;
-    @NotNull
-    private final GitlabAPIExceptionHandler apiExceptionHandler;
+    private final GitLabAPIExceptionHandler apiExceptionHandler;
 
-    public GitlabCommitAdapter(@NotNull GitlabCommit gitlabCommit,
-                               @NotNull GitlabAPI gitlabAPI,
-                               @NotNull RequestsCounter requestsCounter, @NotNull String repository,
-                               @NotNull GitlabAPIExceptionHandler apiExceptionHandler) {
+    public GitLabCommitAdapter(@NotNull GitLabCommit gitlabCommit,
+                               @NotNull GitLabRepositoryAPI repositoryAPI,
+                               @NotNull RequestsCounter requestsCounter,
+                               @NotNull GitLabAPIExceptionHandler apiExceptionHandler) {
         this.gitlabCommit = gitlabCommit;
-        this.gitlabAPI = gitlabAPI;
+        this.repositoryAPI = repositoryAPI;
         this.requestsCounter = requestsCounter;
-        this.repository = repository;
         this.apiExceptionHandler = apiExceptionHandler;
     }
 
@@ -44,7 +41,7 @@ public final class GitlabCommitAdapter implements CommitAdapter {
     @NotNull
     @Override
     public String getTitle() {
-        return gitlabCommit.getTitle();
+        return gitlabCommit.getMessage();
     }
 
     @NotNull
@@ -70,16 +67,19 @@ public final class GitlabCommitAdapter implements CommitAdapter {
     @Override
     public Collection<CommitFileAdapter> getCommitDiffs() throws IOException {
         final String commitSha1 = getCommitSha1();
-        final List<GitlabCommitDiff> commitDiffs;
+        final GitLabFile[] commitDiffs;
         try {
-            commitDiffs = gitlabAPI.getCommitDiffs(repository, commitSha1);
+            commitDiffs = repositoryAPI.getCommitFiles(commitSha1);
             requestsCounter.increase();
-        } catch (GitlabAPIException e) {
+        } catch (APIException e) {
             throw apiExceptionHandler.handle(e);
         }
+        if (commitDiffs == null) {
+            throw new IllegalStateException("Something goes wrong. Got null commit diff for sha1 = " + commitSha1);
+        }
         final Collection<CommitFileAdapter> commitFileAdapters = new ArrayList<>();
-        for (GitlabCommitDiff commitDiff : commitDiffs) {
-            commitFileAdapters.add(new GitlabCommitFileAdapter(commitDiff));
+        for (GitLabFile gitLabFile : commitDiffs) {
+            commitFileAdapters.add(new GitLabCommitFileAdapter(gitLabFile));
         }
 
         return commitFileAdapters;

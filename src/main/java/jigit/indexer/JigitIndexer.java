@@ -3,7 +3,6 @@ package jigit.indexer;
 import com.atlassian.jira.util.JiraKeyUtils;
 import jigit.ao.CommitManager;
 import jigit.ao.QueueItemManager;
-import jigit.client.github.LimitExceededException;
 import jigit.indexer.api.*;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
@@ -107,7 +106,7 @@ public final class JigitIndexer {
                 }
             } catch (LimitExceededException ignored) {
                 LOG.warn("Repository request limit exceeded for " + repo.getRepoName()
-                        + ". Next indexing would be started at " + new Date(repo.getSleepTo()));
+                        + ". Next indexing starts after " + new Date(repo.getSleepTo()));
             }
 
             return repo;
@@ -120,10 +119,10 @@ public final class JigitIndexer {
                     return;
                 }
 
-                LOG.info("Starts indexing repository " + repositoryId + " and branch " + branch +
+                LOG.info("Started indexing repository " + repositoryId + " and branch " + branch +
                         " from head commit " + startCommitSha1);
                 indexFromCommit(branch, startCommitSha1);
-                LOG.info("Ends indexing repository " + repositoryId + " and branch " + branch);
+                LOG.info("Ended indexing repository " + repositoryId + " and branch " + branch);
             } catch (SocketTimeoutException e) {
                 LOG.info("SocketTimeoutException when trying to get head commit from "
                         + repositoryId + " branch " + branch, e);
@@ -192,8 +191,10 @@ public final class JigitIndexer {
     }
 
     private static final class JigitThreadFactory implements ThreadFactory {
+        @NotNull
         private final AtomicInteger counter = new AtomicInteger(0);
 
+        @NotNull
         @Override
         public Thread newThread(@NotNull Runnable r) {
             return new Thread(r, "jigit-indexer-" + counter.incrementAndGet());

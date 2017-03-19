@@ -1,24 +1,17 @@
 package jigit.client.github;
 
-import api.client.http.ApiHttpRequestor;
 import api.client.http.ErrorListener;
-import api.client.http.HttpMethod;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
-public final class GitHub {
+public final class GitHub extends ApiClient {
     @NotNull
     private static final List<String> TIME_FORMATS = Arrays.asList("yyyy/MM/dd HH:mm:ss ZZZZ", "yyyy-MM-dd\'T\'HH:mm:ss\'Z\'");
     @NotNull
-    private static final String githubApiUrl = "https://api.github.com";
+    private static final String GITHUB_API_URL = "https://api.github.com";
     @NotNull
     private final String oauthToken;
     private final int requestTimeout;
@@ -26,21 +19,12 @@ public final class GitHub {
     private final ErrorListener errorListener;
 
     @NotNull
-    public static GitHub connect(@NotNull String oauthToken, int requestTimeout, @NotNull ErrorListener errorListener) {
+    public static GitHub connect(@NotNull String oauthToken, @NotNull ErrorListener errorListener, int requestTimeout) {
         return new GitHub(oauthToken, requestTimeout, errorListener);
     }
 
-    @NotNull
-    public static GitHub connect(@NotNull String oauthToken, @NotNull ErrorListener errorListener) {
-        return connect(oauthToken, 0, errorListener);
-    }
-
-    @NotNull
-    public static GitHub connect(@NotNull String oauthToken) {
-        return connect(oauthToken, ErrorListener.EMPTY);
-    }
-
     private GitHub(@NotNull String oauthToken, int requestTimeout, @NotNull ErrorListener errorListener) {
+        super(GITHUB_API_URL);
         this.oauthToken = oauthToken;
         this.requestTimeout = requestTimeout;
         this.errorListener = errorListener;
@@ -52,19 +36,20 @@ public final class GitHub {
     }
 
     @NotNull
-    public ApiHttpRequestor get(@NotNull String endpointUrl) throws IOException {
-        return new ApiHttpRequestor(getAPIUrl(endpointUrl), requestTimeout, errorListener, "token " + oauthToken);
+    @Override
+    protected ErrorListener getErrorListener() {
+        return errorListener;
     }
 
-    @NotNull
-    public ApiHttpRequestor post(@NotNull String endpointUrl) throws IOException {
-        return new ApiHttpRequestor(getAPIUrl(endpointUrl), requestTimeout, errorListener).withMethod(HttpMethod.POST);
+    @Override
+    protected int getRequestTimeout() {
+        return requestTimeout;
     }
 
+    @Override
     @NotNull
-    private static URL getAPIUrl(@NotNull String tailAPIUrl) throws IOException {
-        final String maybeSlash = tailAPIUrl.startsWith("/") ? "" : "/";
-        return new URL(githubApiUrl + maybeSlash + tailAPIUrl);
+    protected Map<String, String> getRequestParameters() {
+        return Collections.singletonMap("Authorization", "token " + oauthToken);
     }
 
     @NotNull

@@ -7,13 +7,13 @@ import java.util.List;
 
 public final class GitHubCommit {
     @NotNull
-    private String sha;
+    private final String sha;
     @NotNull
-    private CommitInfo commit;
+    private final CommitInfo commit;
     @Nullable
-    private List<ParentCommit> parents;
+    private final List<ParentCommit> parents;
     @NotNull
-    private List<File> files;
+    private final List<File> files;
 
     public GitHubCommit(@NotNull String sha,
                         @NotNull CommitInfo commit,
@@ -62,24 +62,15 @@ public final class GitHubCommit {
     public static final class File {
         @NotNull
         private final String status;
-        private final int changes;
-        private final int additions;
-        private final int deletions;
         @NotNull
         private final String filename;
         @Nullable
         private final String previous_filename;
 
         public File(@NotNull String status,
-                    int changes,
-                    int additions,
-                    int deletions,
                     @NotNull String filename,
                     @Nullable String previous_filename) {
             this.status = status;
-            this.changes = changes;
-            this.additions = additions;
-            this.deletions = deletions;
             this.filename = filename;
             this.previous_filename = previous_filename;
         }
@@ -87,18 +78,6 @@ public final class GitHubCommit {
         @NotNull
         public String getStatus() {
             return status;
-        }
-
-        public int getChanges() {
-            return changes;
-        }
-
-        public int getAdditions() {
-            return additions;
-        }
-
-        public int getDeletions() {
-            return deletions;
         }
 
         @NotNull
@@ -116,24 +95,16 @@ public final class GitHubCommit {
         @NotNull
         private final GitHubAuthor author;
         @NotNull
-        private final GitHubAuthor committer;
-        @NotNull
         private final String message;
 
-        private CommitInfo(@NotNull GitHubAuthor author, @NotNull GitHubAuthor committer, @NotNull String message) {
+        private CommitInfo(@NotNull GitHubAuthor author, @NotNull String message) {
             this.author = author;
-            this.committer = committer;
             this.message = message;
         }
 
         @NotNull
         public GitHubAuthor getAuthor() {
             return author;
-        }
-
-        @NotNull
-        public GitHubAuthor getCommitter() {
-            return committer;
         }
 
         @NotNull

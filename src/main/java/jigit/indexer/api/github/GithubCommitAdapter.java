@@ -5,7 +5,6 @@ import jigit.indexer.api.CommitAdapter;
 import jigit.indexer.api.CommitFileAdapter;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.*;
 
 public final class GithubCommitAdapter implements CommitAdapter {
@@ -57,7 +56,7 @@ public final class GithubCommitAdapter implements CommitAdapter {
 
     @NotNull
     @Override
-    public Collection<CommitFileAdapter> getCommitDiffs() throws IOException {
+    public Collection<CommitFileAdapter> getCommitDiffs() {
         final Collection<CommitFileAdapter> commitFileAdapters = new ArrayList<>();
         for (GitHubCommit.File file : ghCommit.getFiles()) {
             commitFileAdapters.add(new GithubCommitFileAdapter(file));

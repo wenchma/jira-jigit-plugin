@@ -1,14 +1,16 @@
 package jigit.indexer.api;
 
 import jigit.client.github.GitHub;
-import jigit.client.github.GitHubErrorListener;
 import jigit.client.github.GitHubRepositoryAPI;
+import jigit.client.gitlab.GitLab;
+import jigit.client.gitlab.GitLabRepositoryAPI;
+import jigit.indexer.api.github.GitHubErrorListener;
 import jigit.indexer.api.github.GithubAPIAdapter;
-import jigit.indexer.api.gitlab.GitlabAPIAdapter;
-import jigit.indexer.api.gitlab.GitlabAPIExceptionHandler;
+import jigit.indexer.api.gitlab.GitLabAPIAdapter;
+import jigit.indexer.api.gitlab.GitLabAPIExceptionHandler;
+import jigit.indexer.api.gitlab.GitLabErrorListener;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
-import org.gitlab.api.GitlabAPI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,6 +20,8 @@ public final class APIAdapterFactory {
     @NotNull
     private static final Pattern GITHUB_URL_REGEXP = Pattern.compile("^.+github.com.*$", Pattern.CASE_INSENSITIVE);
     @NotNull
+    private static final GitLabErrorListener GIT_LAB_ERROR_LISTENER = new GitLabErrorListener();
+    @NotNull
     private final JigitSettingsManager settingsManager;
 
     public APIAdapterFactory(@NotNull JigitSettingsManager settingsManager) {
@@ -25,12 +29,13 @@ public final class APIAdapterFactory {
     }
 
     @NotNull
-    private GitlabAPIAdapter getGitlabAPIAdapter(@NotNull JigitRepo repo) {
-        final GitlabAPI gitlabAPI = GitlabAPI.connect(repo.getServerUrl(), repo.getToken());
-        gitlabAPI.setRequestTimeout(repo.getRequestTimeout());
+    private GitLabAPIAdapter getGitlabAPIAdapter(@NotNull JigitRepo repo) {
+        final GitLabRepositoryAPI repositoryAPI = GitLab
+                .connect(repo.getServerUrl(), repo.getToken(), GIT_LAB_ERROR_LISTENER, repo.getRequestTimeout())
+                .getGitLabRepositoryAPI(repo.getRepositoryId());
 
-        final GitlabAPIExceptionHandler apiExceptionHandler = new GitlabAPIExceptionHandler(settingsManager, repo);
-        return new GitlabAPIAdapter(gitlabAPI, repo.getRepositoryId(), apiExceptionHandler);
+        final GitLabAPIExceptionHandler apiExceptionHandler = new GitLabAPIExceptionHandler(settingsManager, repo);
+        return new GitLabAPIAdapter(repositoryAPI, apiExceptionHandler);
     }
 
     @Nullable
@@ -48,7 +53,7 @@ public final class APIAdapterFactory {
         final int requestTimeout = repo.getRequestTimeout();
         final GitHubErrorListener errorListener = new GitHubErrorListener(settingsManager, repo);
         final GitHubRepositoryAPI repositoryAPI = GitHub
-                .connect(repo.getToken(), requestTimeout, errorListener)
+                .connect(repo.getToken(), errorListener, requestTimeout)
                 .getRepositoryAPI(repo.getRepositoryId());
 
         return new GithubAPIAdapter(repositoryAPI);

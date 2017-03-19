@@ -1,28 +1,27 @@
 package jigit.client.github.dto;
 
 import jigit.client.github.GitHub;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 
 public final class GitHubAuthor {
+    @NotNull
     private final String name;
-    private final String email;
+    @NotNull
     private final String date;
 
-    public GitHubAuthor(String name, String email, String date) {
+    public GitHubAuthor(@NotNull String name, @NotNull String date) {
         this.name = name;
-        this.email = email;
         this.date = date;
     }
 
+    @NotNull
     public String getName() {
         return this.name;
     }
 
-    public String getEmail() {
-        return this.email;
-    }
-
+    @NotNull
     public Date getDate() {
         return GitHub.parseDate(this.date);
     }
