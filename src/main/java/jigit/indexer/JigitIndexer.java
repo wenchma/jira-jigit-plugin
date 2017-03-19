@@ -169,7 +169,8 @@ public final class JigitIndexer {
                 }
 
                 Collection<CommitFileAdapter> commitDiffs = Collections.emptyList();
-                final List<String> issueKeys = JiraKeyUtils.getIssueKeysFromString(commitAdapter.getTitle());
+                final Set<String> issueKeys =
+                        new HashSet<>(JiraKeyUtils.getIssueKeysFromString(commitAdapter.getTitle()));
 
                 if (!issueKeys.isEmpty()) {
                     try {
