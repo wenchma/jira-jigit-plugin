@@ -7,11 +7,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
-public final class GitLabErrorListener implements ErrorListener {
-    @Override
-    public void onError(@NotNull IOException e, @NotNull HttpURLConnection httpURLConnection) throws IOException {
-        if (e instanceof FileNotFoundException) {
-            throw e;
+public enum GitLabErrorListener implements ErrorListener {
+    INSTANCE {
+        @Override
+        public void onError(@NotNull IOException e, @NotNull HttpURLConnection httpURLConnection) throws IOException {
+            if (e instanceof FileNotFoundException) {
+                throw e;
+            }
         }
     }
 }

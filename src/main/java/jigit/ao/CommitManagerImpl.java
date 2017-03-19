@@ -139,7 +139,7 @@ public final class CommitManagerImpl implements CommitManager {
                                  @NotNull String repoName,
                                  @NotNull String branchName,
                                  @NotNull Collection<String> issueKeys,
-                                 @NotNull Collection<CommitFileAdapter> commitFileAdapters) throws ParseException {
+                                 @NotNull Collection<CommitFileAdapter> commitFileAdapters) {
         if (issueKeys.isEmpty()) {
             return;
         }

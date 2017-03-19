@@ -15,7 +15,7 @@ public final class GithubCommitFileAdapter implements CommitFileAdapter {
             "modified", CommitAction.MODIFIED,
             "renamed", CommitAction.RENAMED);
     @NotNull
-    private GitHubCommit.File file;
+    private final GitHubCommit.File file;
 
     public GithubCommitFileAdapter(@NotNull GitHubCommit.File file) {
         this.file = file;

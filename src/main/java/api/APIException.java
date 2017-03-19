@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
-public class APIException extends IOException {
+public final class APIException extends IOException {
   
   private final int responseCode;
 

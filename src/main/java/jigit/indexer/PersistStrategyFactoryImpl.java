@@ -58,7 +58,7 @@ public final class PersistStrategyFactoryImpl implements PersistStrategyFactory 
                                           @NotNull String branch,
                                           @NotNull CommitAdapter commitAdapter,
                                           @NotNull Collection<String> issueKeys,
-                                          @NotNull Collection<CommitFileAdapter> commitFileAdapters) throws ParseException {
+                                          @NotNull Collection<CommitFileAdapter> commitFileAdapters) {
             commitManager.persistDependent(commitAdapter, repoName, branch, issueKeys, commitFileAdapters);
             return commitAdapter.getParentSha1s();
         }

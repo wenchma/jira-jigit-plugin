@@ -20,8 +20,6 @@ public final class APIAdapterFactory {
     @NotNull
     private static final Pattern GITHUB_URL_REGEXP = Pattern.compile("^.+github.com.*$", Pattern.CASE_INSENSITIVE);
     @NotNull
-    private static final GitLabErrorListener GIT_LAB_ERROR_LISTENER = new GitLabErrorListener();
-    @NotNull
     private final JigitSettingsManager settingsManager;
 
     public APIAdapterFactory(@NotNull JigitSettingsManager settingsManager) {
@@ -31,7 +29,7 @@ public final class APIAdapterFactory {
     @NotNull
     private GitLabAPIAdapter getGitlabAPIAdapter(@NotNull JigitRepo repo) {
         final GitLabRepositoryAPI repositoryAPI = GitLab
-                .connect(repo.getServerUrl(), repo.getToken(), GIT_LAB_ERROR_LISTENER, repo.getRequestTimeout())
+                .connect(repo.getServerUrl(), repo.getToken(), GitLabErrorListener.INSTANCE, repo.getRequestTimeout())
                 .getGitLabRepositoryAPI(repo.getRepositoryId());
 
         final GitLabAPIExceptionHandler apiExceptionHandler = new GitLabAPIExceptionHandler(settingsManager, repo);
