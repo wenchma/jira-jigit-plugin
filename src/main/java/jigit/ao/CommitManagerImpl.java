@@ -4,6 +4,9 @@ import com.atlassian.activeobjects.external.ActiveObjects;
 import com.atlassian.activeobjects.tx.Transactional;
 import com.atlassian.jira.issue.Issue;
 import com.atlassian.jira.issue.changehistory.ChangeHistoryManager;
+import com.google.common.base.Functions;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import jigit.common.CommitDateHelper;
 import jigit.entities.Commit;
 import jigit.entities.CommitDiff;
@@ -81,16 +84,39 @@ public final class CommitManagerImpl implements CommitManager {
     @NotNull
     public List<Commit> getCommits(@NotNull Issue issue) {
         final Collection<String> issueKeys = new ArrayList<>();
+        //TODO revise deprecated
         issueKeys.addAll(changeHistoryManager.getPreviousIssueKeys(issue.getId()));
         issueKeys.add(issue.getKey());
+
+        return getCommits(issueKeys);
+    }
+
+    @Override
+    @NotNull
+    public List<Commit> getCommits(@NotNull Collection<String> issueKeys) {
+        final String issueKeysPlaceholder = Joiner
+                .on(", ")
+                .join(Iterables.transform(issueKeys, Functions.constant("?")));
 
         final Commit[] commits = ao.find(Commit.class, Query.
                 select().
                 alias(Commit.class, "commit").alias(CommitIssue.class, "commit_issue").
                 join(CommitIssue.class, "commit.ID = commit_issue.COMMIT_ID").
-                where("commit_issue.ISSUE_KEY IN (?)", issueKeys.toArray()));
+                where("commit_issue.ISSUE_KEY IN (" + issueKeysPlaceholder + ")", issueKeys.toArray())
+        );
 
-        return Arrays.asList(commits);
+        //can't use select().distinct() in the query above, because commit.TITLE field has CLOB data type in Oracle,
+        //and it doesn't allow distinct clause. So, there are two ways: use two queries or exclude duplicate by hands.
+        return excludeDuplicates(commits);
+    }
+
+    @NotNull
+    private List<Commit> excludeDuplicates(@NotNull Commit[] commits) {
+        final Map<Integer, Commit> result = new HashMap<>(commits.length);
+        for (Commit commit : commits) {
+            result.put(commit.getID(), commit);
+        }
+        return new ArrayList<>(result.values());
     }
 
     @Override

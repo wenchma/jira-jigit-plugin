@@ -29,6 +29,9 @@ public interface CommitManager {
     @NotNull
     List<Commit> getCommits(@NotNull Issue issue);
 
+    @NotNull
+    List<Commit> getCommits(@NotNull Collection<String> issueKeys);
+
     @Transactional
     void removeCommits(@NotNull String repoName, @NotNull String branch);
 

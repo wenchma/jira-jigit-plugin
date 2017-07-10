@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
-//TODO refactor deprecated
+//TODO revise deprecated
 public final class JigitIndexJob implements PluginJob {
     @NotNull
     private static final Logger LOG = Logger.getLogger(JigitIndexJob.class);

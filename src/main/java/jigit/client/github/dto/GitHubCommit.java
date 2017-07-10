@@ -97,7 +97,7 @@ public final class GitHubCommit {
         @NotNull
         private final String message;
 
-        private CommitInfo(@NotNull GitHubAuthor author, @NotNull String message) {
+        public CommitInfo(@NotNull GitHubAuthor author, @NotNull String message) {
             this.author = author;
             this.message = message;
         }
