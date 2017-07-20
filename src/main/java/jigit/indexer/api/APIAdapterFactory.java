@@ -12,7 +12,6 @@ import jigit.indexer.api.gitlab.GitLabErrorListener;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.regex.Pattern;
 
@@ -36,7 +35,7 @@ public final class APIAdapterFactory {
         return new GitLabAPIAdapter(repositoryAPI, apiExceptionHandler);
     }
 
-    @Nullable
+    @NotNull
     public APIAdapter getAPIAdapter(@NotNull JigitRepo repo) {
         final String serverUrl = repo.getServerUrl();
         if (GITHUB_URL_REGEXP.matcher(serverUrl).matches()) {
@@ -46,7 +45,7 @@ public final class APIAdapterFactory {
         return getGitlabAPIAdapter(repo);
     }
 
-    @Nullable
+    @NotNull
     private GithubAPIAdapter getGithubAPIAdapter(@NotNull JigitRepo repo) {
         final int requestTimeout = repo.getRequestTimeout();
         final GitHubErrorListener errorListener = new GitHubErrorListener(settingsManager, repo);

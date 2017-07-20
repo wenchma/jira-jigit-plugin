@@ -5,6 +5,7 @@ import com.atlassian.jira.security.PermissionManager;
 import com.atlassian.jira.security.Permissions;
 import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.util.I18nHelper;
+import jigit.indexer.api.APIAdapterFactory;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +14,9 @@ import org.jetbrains.annotations.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
@@ -34,14 +37,18 @@ public final class JigitAdminRESTService {
     @NotNull
     @Context
     private HttpServletRequest request;
+    private final @NotNull
+    APIAdapterFactory apiAdapterFactory;
 
     public JigitAdminRESTService(@NotNull JiraAuthenticationContext authCtx,
-                                   @NotNull PermissionManager permissionManager,
-                                   @NotNull JigitSettingsManager settingsManager) {
+                                 @NotNull PermissionManager permissionManager,
+                                 @NotNull JigitSettingsManager settingsManager,
+                                 @NotNull APIAdapterFactory apiAdapterFactory) {
         this.authCtx = authCtx;
         this.permissionManager = permissionManager;
         this.i18n = authCtx.getI18nHelper();
         this.settingsManager = settingsManager;
+        this.apiAdapterFactory = apiAdapterFactory;
     }
 
     @NotNull
@@ -60,7 +67,7 @@ public final class JigitAdminRESTService {
     @NotNull
     @POST
     @Path("repo/add")
-    @Produces("text/html")
+    @Produces(MediaType.TEXT_HTML)
     public Response addRepo(@NotNull @FormParam("repo_name") @DefaultValue("") String repoName,
                             @NotNull @FormParam("url") @DefaultValue("") String url,
                             @NotNull @FormParam("token") @DefaultValue("") String token,
@@ -76,6 +83,10 @@ public final class JigitAdminRESTService {
         if (repoName.isEmpty() || url.isEmpty() || token.isEmpty() || repositoryId.isEmpty() || branch.isEmpty()) {
             return Response.ok(i18n.getText("jigit.error.params.empty")).status(Response.Status.BAD_REQUEST).build();
         }
+        final JigitRepo existedJigitRepo = settingsManager.getJigitRepo(repoName);
+        if (existedJigitRepo != null) {
+            return Response.ok(i18n.getText("jigit.error.params.repo.exists", repoName)).status(Response.Status.BAD_REQUEST).build();
+        }
 
         final JigitRepo jigitRepo = new JigitRepo(repoName.trim(), url.trim(), token, repositoryId.trim(),
                 branch.trim(), true, (int) TIME_UNIT.toMillis(requestTimeout),
@@ -88,8 +99,48 @@ public final class JigitAdminRESTService {
 
     @NotNull
     @POST
+    @Path("repo/test")
+    @Produces(MediaType.TEXT_HTML)
+    public Response testRepo(@NotNull @FormParam("repo_name") @DefaultValue("") String repoName,
+                             @NotNull @FormParam("url") @DefaultValue("") String url,
+                             @NotNull @FormParam("token") @DefaultValue("") String token,
+                             @NotNull @FormParam("change_token") @DefaultValue("false") Boolean change_token,
+                             @NotNull @FormParam("repository_id") @DefaultValue("") String repositoryId,
+                             @NotNull @FormParam("def_branch") @DefaultValue("") String branch,
+                             @NotNull @FormParam("request_timeout") @DefaultValue("10") Integer requestTimeout) {
+        final Response response = checkUserPermissions(authCtx.getLoggedInUser(), Permissions.ADMINISTER);
+        if (response != null) {
+            return response;
+        }
+        if (repoName.isEmpty() || url.isEmpty() || repositoryId.isEmpty() || branch.isEmpty()) {
+            return Response.ok(i18n.getText("jigit.error.params.empty")).status(Response.Status.BAD_REQUEST).build();
+        }
+
+        final JigitRepo existedJigitRepo = settingsManager.getJigitRepo(repoName);
+        final JigitRepo jigitRepo;
+        if (change_token || existedJigitRepo == null) {
+            jigitRepo = new JigitRepo(repoName, url.trim(), token, repositoryId.trim(),
+                    branch.trim(), true, (int) TIME_UNIT.toMillis(requestTimeout),
+                    (int) TIME_UNIT.toMillis(0), 0);
+        } else {
+            jigitRepo = new JigitRepo(repoName, url.trim(), existedJigitRepo.getToken(), repositoryId.trim(),
+                    branch.trim(), true, (int) TIME_UNIT.toMillis(requestTimeout),
+                    (int) TIME_UNIT.toMillis(0), 0);
+        }
+
+        try {
+            apiAdapterFactory.getAPIAdapter(jigitRepo).getHeadCommitSha1(jigitRepo.getDefaultBranch());
+        } catch (IOException e) {
+            return Response.ok(e.getMessage()).status(Response.Status.BAD_REQUEST).build();
+        }
+
+        return Response.ok().build();
+    }
+
+    @NotNull
+    @POST
     @Path("repo/edit")
-    @Produces("text/html")
+    @Produces(MediaType.TEXT_HTML)
     public Response editRepo(@NotNull @FormParam("repo_name") @DefaultValue("") String repoName,
                              @NotNull @FormParam("url") @DefaultValue("") String url,
                              @NotNull @FormParam("token") @DefaultValue("") String token,
@@ -126,7 +177,7 @@ public final class JigitAdminRESTService {
     @NotNull
     @POST
     @Path("/repo/{repo:.+}/remove")
-    @Produces("text/html")
+    @Produces(MediaType.TEXT_HTML)
     public Response removeRepo(@NotNull @PathParam("repo") @DefaultValue("") String repoName) {
         final Response response = checkUserPermissions(authCtx.getLoggedInUser(), Permissions.ADMINISTER);
         if (response != null) {
@@ -144,7 +195,7 @@ public final class JigitAdminRESTService {
     @NotNull
     @POST
     @Path("/repo/{repo:.+}/activity")
-    @Produces("text/html")
+    @Produces(MediaType.TEXT_HTML)
     public Response disableRepo(@NotNull @PathParam("repo") @DefaultValue("") String repoName,
                                 @Nullable @FormParam("enabled") Boolean enabled) {
         final Response response = checkUserPermissions(authCtx.getLoggedInUser(), Permissions.ADMINISTER);
@@ -173,7 +224,7 @@ public final class JigitAdminRESTService {
     @NotNull
     @POST
     @Path("/repo/{repo:.+}/branch/add")
-    @Produces("text/html")
+    @Produces(MediaType.TEXT_HTML)
     public Response addBranch(@NotNull @PathParam("repo") @DefaultValue("") String repoName,
                               @NotNull @FormParam("branch") @DefaultValue("") String branch) {
         final Response response = checkUserPermissions(authCtx.getLoggedInUser(), Permissions.ADMINISTER);
@@ -197,7 +248,7 @@ public final class JigitAdminRESTService {
     @NotNull
     @POST
     @Path("/repo/{repo:.+}/branch/{branch:.+}/remove")
-    @Produces("text/html")
+    @Produces(MediaType.TEXT_HTML)
     public Response removeBranch(@NotNull @PathParam("repo") @DefaultValue("") String repoName,
                                  @NotNull @PathParam("branch") @DefaultValue("") String branch) {
         final Response response = checkUserPermissions(authCtx.getLoggedInUser(), Permissions.ADMINISTER);

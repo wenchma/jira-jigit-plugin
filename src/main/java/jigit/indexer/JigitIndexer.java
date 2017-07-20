@@ -55,9 +55,6 @@ public final class JigitIndexer {
                     continue;
                 }
                 final APIAdapter apiAdapter = apiAdapterFactory.getAPIAdapter(repo);
-                if (apiAdapter == null) {
-                    continue;
-                }
                 completionService.submit(new Indexer(apiAdapter, repo));
                 futureTasks++;
             }
