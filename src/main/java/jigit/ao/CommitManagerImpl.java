@@ -15,7 +15,7 @@ import jigit.indexer.api.CommitAdapter;
 import jigit.indexer.api.CommitFileAdapter;
 import net.java.ao.DBParam;
 import net.java.ao.Query;
-import net.java.ao.util.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
