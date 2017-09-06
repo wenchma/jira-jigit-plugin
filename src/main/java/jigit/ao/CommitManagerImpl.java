@@ -15,6 +15,7 @@ import jigit.indexer.api.CommitAdapter;
 import jigit.indexer.api.CommitFileAdapter;
 import net.java.ao.DBParam;
 import net.java.ao.Query;
+import net.java.ao.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -26,6 +27,8 @@ public final class CommitManagerImpl implements CommitManager {
     private final ActiveObjects ao;
     @NotNull
     private final ChangeHistoryManager changeHistoryManager;
+    @NotNull
+    private static final String EMPTY_COMMIT_MESSAGE_PLACEHOLDER = "<empty message>";
 
     public CommitManagerImpl(@NotNull ActiveObjects ao,
                              @NotNull ChangeHistoryManager changeHistoryManager) {
@@ -58,9 +61,13 @@ public final class CommitManagerImpl implements CommitManager {
     public Commit create(@NotNull String commitSha1, @NotNull String title, @NotNull String author,
                          @NotNull Date createdAt, @NotNull String repoName, @NotNull String branchName,
                          boolean firstCommit) {
-        return ao.create(Commit.class, new DBParam("COMMIT_SHA1", commitSha1), new DBParam("TITLE", title),
-                new DBParam("AUTHOR", author), new DBParam("CREATED_AT", createdAt),
-                new DBParam("FIRST_COMMIT", firstCommit), new DBParam("REPO_NAME", repoName),
+        return ao.create(Commit.class,
+                new DBParam("COMMIT_SHA1", commitSha1),
+                new DBParam("TITLE", StringUtils.isBlank(title) ? EMPTY_COMMIT_MESSAGE_PLACEHOLDER : title),
+                new DBParam("AUTHOR", author),
+                new DBParam("CREATED_AT", createdAt),
+                new DBParam("FIRST_COMMIT", firstCommit),
+                new DBParam("REPO_NAME", repoName),
                 new DBParam("BRANCH", branchName));
     }
 
