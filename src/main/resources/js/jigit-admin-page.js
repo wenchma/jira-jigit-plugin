@@ -10,7 +10,7 @@ AJS.$(function () {
             checkbox.closest("form").find("[name='token']").prop('disabled', true);
         }
     });
-    AJS.$(".remove-jigit-repo-button, .activity-jigit-repo-button").click(function () {
+    AJS.$(".remove-jigit-repo-button, .activity-jigit-repo-button, .clear-jigit-repo-button").click(function () {
         getActionTriggerElement(this).closest("tr").find("." + AJS.$(this).attr("data-form")).submit();
     });
 

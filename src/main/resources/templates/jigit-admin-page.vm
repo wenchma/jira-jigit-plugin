@@ -149,6 +149,11 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
                                 </a>
                             </li>
                             <li>
+                                <a href="#" class="clear-jigit-repo-button" data-form="clear-jigit-repo">
+                                    $i18n.getText('jigit.buttons.clear')
+                                </a>
+                            </li>
+                            <li>
                                 <a href="#" class="remove-jigit-repo-button" data-form="remove-jigit-repo">
                                     $i18n.getText('jigit.buttons.delete')
                                 </a>
@@ -164,6 +169,11 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
                     <form class="remove-jigit-repo" method="post"
                           onsubmit="return confirm('$i18n.getText("jigit.confirm.delete.repo")');"
                           action="$action.getBaseUrl()/rest/jigit/1.0/repo/$settingsKey/remove">
+                    </form>
+
+                    <form class="clear-jigit-repo" method="post"
+                          onsubmit="return confirm('$i18n.getText("jigit.confirm.clear.repo")');"
+                          action="$action.getBaseUrl()/rest/jigit/1.0/repo/$settingsKey/clear">
                     </form>
                 </td>
             </tr>

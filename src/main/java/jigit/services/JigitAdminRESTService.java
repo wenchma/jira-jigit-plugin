@@ -5,6 +5,7 @@ import com.atlassian.jira.security.PermissionManager;
 import com.atlassian.jira.security.Permissions;
 import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.util.I18nHelper;
+import jigit.indexer.RepoDataCleaner;
 import jigit.indexer.api.APIAdapterFactory;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
@@ -37,18 +38,22 @@ public final class JigitAdminRESTService {
     @NotNull
     @Context
     private HttpServletRequest request;
-    private final @NotNull
-    APIAdapterFactory apiAdapterFactory;
+    @NotNull
+    private final APIAdapterFactory apiAdapterFactory;
+    @NotNull
+    private final RepoDataCleaner repoDataCleaner;
 
     public JigitAdminRESTService(@NotNull JiraAuthenticationContext authCtx,
                                  @NotNull PermissionManager permissionManager,
                                  @NotNull JigitSettingsManager settingsManager,
-                                 @NotNull APIAdapterFactory apiAdapterFactory) {
+                                 @NotNull APIAdapterFactory apiAdapterFactory,
+                                 @NotNull RepoDataCleaner repoDataCleaner) {
         this.authCtx = authCtx;
         this.permissionManager = permissionManager;
         this.i18n = authCtx.getI18nHelper();
         this.settingsManager = settingsManager;
         this.apiAdapterFactory = apiAdapterFactory;
+        this.repoDataCleaner = repoDataCleaner;
     }
 
     @NotNull
@@ -188,6 +193,27 @@ public final class JigitAdminRESTService {
         }
 
         settingsManager.removeJigitRepo(repoName);
+
+        return getReferrerResponse(request);
+    }
+
+    @NotNull
+    @POST
+    @Path("/repo/{repo:.+}/clear")
+    @Produces(MediaType.TEXT_HTML)
+    public Response clearRepo(@NotNull @PathParam("repo") @DefaultValue("") String repoName) {
+        final Response response = checkUserPermissions(authCtx.getLoggedInUser(), Permissions.ADMINISTER);
+        if (response != null) {
+            return response;
+        }
+        if (repoName.isEmpty()) {
+            return Response.ok(i18n.getText("jigit.error.params.empty")).status(Response.Status.BAD_REQUEST).build();
+        }
+        final JigitRepo jigitRepo = settingsManager.getJigitRepo(repoName);
+        if (jigitRepo == null) {
+            return Response.noContent().status(Response.Status.NOT_FOUND).build();
+        }
+        repoDataCleaner.clearRepoData(jigitRepo);
 
         return getReferrerResponse(request);
     }

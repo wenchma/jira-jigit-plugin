@@ -1,7 +1,6 @@
 package jigit.indexer;
 
 import jigit.ao.CommitManager;
-import jigit.ao.QueueItemManager;
 import jigit.entities.Commit;
 import jigit.indexer.api.APIAdapter;
 import jigit.settings.JigitRepo;
@@ -14,23 +13,22 @@ public final class DeletingForcePushHandler implements ForcePushHandler {
     @NotNull
     private final CommitManager commitManager;
     @NotNull
-    private final QueueItemManager queueItemManager;
-    @NotNull
     private final APIAdapter apiAdapter;
+    @NotNull
+    private final RepoDataCleaner repoDataCleaner;
 
     public DeletingForcePushHandler(@NotNull CommitManager commitManager,
-                                    @NotNull QueueItemManager queueItemManager,
-                                    @NotNull APIAdapter apiAdapter) {
+                                    @NotNull APIAdapter apiAdapter,
+                                    @NotNull RepoDataCleaner repoDataCleaner) {
         this.commitManager = commitManager;
-        this.queueItemManager = queueItemManager;
         this.apiAdapter = apiAdapter;
+        this.repoDataCleaner = repoDataCleaner;
     }
 
     @Override
     public void handle(@NotNull JigitRepo repo, @NotNull String branch) throws IOException {
         if (wasBranchForcePushed(repo, branch)) {
-            queueItemManager.remove(repo.getRepoName(), branch);
-            commitManager.removeCommits(repo.getRepoName(), branch);
+            repoDataCleaner.clearRepoData(repo.getRepoName(), branch);
         }
     }
 

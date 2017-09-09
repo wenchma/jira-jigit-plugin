@@ -59,6 +59,9 @@
     <component key="jigit-jigit-indexer" name="Jigit Indexer"
                class="jigit.indexer.JigitIndexer"/>
 
+    <component key="jigit-repo-data-cleaner" name="Jigit Repo Data Cleaner"
+               class="jigit.indexer.RepoDataCleaner"/>
+
     <component key="jigit-index-job" class="jigit.job.JigitIndexJobScheduler"
                system="true" public="true">
         <description>The plugin component that schedules Jigit index tasks.</description>

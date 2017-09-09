@@ -30,17 +30,21 @@ public final class JigitIndexer {
     private final PersistStrategyFactory persistStrategyFactory;
     @NotNull
     private final APIAdapterFactory apiAdapterFactory;
+    @NotNull
+    private final RepoDataCleaner repoDataCleaner;
 
     public JigitIndexer(@NotNull JigitSettingsManager settingsManager,
                         @NotNull CommitManager commitManager,
                         @NotNull QueueItemManager queueItemManager,
                         @NotNull PersistStrategyFactory persistStrategyFactory,
-                        @NotNull APIAdapterFactory apiAdapterFactory) {
+                        @NotNull APIAdapterFactory apiAdapterFactory,
+                        @NotNull RepoDataCleaner repoDataCleaner) {
         this.settingsManager = settingsManager;
         this.commitManager = commitManager;
         this.queueItemManager = queueItemManager;
         this.persistStrategyFactory = persistStrategyFactory;
         this.apiAdapterFactory = apiAdapterFactory;
+        this.repoDataCleaner = repoDataCleaner;
     }
 
     public void execute() {
@@ -88,7 +92,7 @@ public final class JigitIndexer {
         private Indexer(@NotNull APIAdapter apiAdapter, @NotNull JigitRepo repo) {
             this.repo = repo;
             this.apiAdapter = apiAdapter;
-            deletingForcePushHandler = new DeletingForcePushHandler(commitManager, queueItemManager, apiAdapter);
+            deletingForcePushHandler = new DeletingForcePushHandler(commitManager, apiAdapter, repoDataCleaner);
         }
 
         @NotNull
