@@ -4,16 +4,12 @@ import api.client.http.ErrorListener;
 import jigit.client.github.ApiClient;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import javax.xml.bind.DatatypeConverter;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
-import java.util.TimeZone;
 
 public final class GitLab extends ApiClient {
-    @NotNull
-    private static final String TIME_FORMAT = "yyyy-MM-dd\'T\'HH:mm:ss";
     @NotNull
     private final String privateToken;
     private final int requestTimeout;
@@ -63,10 +59,8 @@ public final class GitLab extends ApiClient {
     @NotNull
     public static Date parseDate(@NotNull String representation) {
         try {
-            final SimpleDateFormat e = new SimpleDateFormat(TIME_FORMAT);
-            e.setTimeZone(TimeZone.getTimeZone("GMT"));
-            return e.parse(representation);
-        } catch (ParseException ignore) {
+            return DatatypeConverter.parseDateTime(representation).getTime();
+        } catch (Throwable ignore) {
             throw new IllegalStateException("Unable to parse the timestamp: " + representation);
         }
     }

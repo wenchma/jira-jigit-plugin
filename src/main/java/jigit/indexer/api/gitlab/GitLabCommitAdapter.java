@@ -53,7 +53,7 @@ public final class GitLabCommitAdapter implements CommitAdapter {
     @NotNull
     @Override
     public Date getCreatedAt() {
-        return gitlabCommit.getCreatedAt();
+        return gitlabCommit.getAuthoredDate();
     }
 
     @NotNull

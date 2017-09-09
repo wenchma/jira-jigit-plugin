@@ -15,19 +15,19 @@ public final class GitLabCommit {
     @NotNull
     private final String author_name;
     @NotNull
-    private final String created_at;
+    private final String authored_date;
     @Nullable
     private final List<String> parent_ids;
 
     public GitLabCommit(@NotNull String id,
                         @NotNull String message,
                         @NotNull String author_name,
-                        @NotNull String created_at,
+                        @NotNull String authored_date,
                         @Nullable List<String> parent_ids) {
         this.id = id;
         this.message = message;
         this.author_name = author_name;
-        this.created_at = created_at;
+        this.authored_date = authored_date;
         this.parent_ids = parent_ids;
     }
 
@@ -47,8 +47,8 @@ public final class GitLabCommit {
     }
 
     @NotNull
-    public Date getCreatedAt() {
-        return GitLab.parseDate(created_at);
+    public Date getAuthoredDate() {
+        return GitLab.parseDate(authored_date);
     }
 
     @Nullable
