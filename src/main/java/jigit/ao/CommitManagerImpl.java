@@ -23,6 +23,7 @@ import java.text.ParseException;
 import java.util.*;
 
 public final class CommitManagerImpl implements CommitManager {
+    private static final int DELETE_BY = 500;
     @NotNull
     private final ActiveObjects ao;
     @NotNull
@@ -129,16 +130,32 @@ public final class CommitManagerImpl implements CommitManager {
     @Override
     @Transactional
     public void removeCommits(@NotNull String repoName, @NotNull String branch) {
-        /*TODO use deleteWithSQL*/
         final Commit[] commits =
                 ao.find(Commit.class, Query.select().where("REPO_NAME = ? AND BRANCH = ?", repoName, branch));
-
+        int counter = 0;
+        final Collection<Integer> ids = new ArrayList<>(DELETE_BY);
         for (Commit commit : commits) {
-            ao.delete(commit.getCommitDiffs());
-            ao.delete(commit.getCommitIssues());
+            counter++;
+            ids.add(commit.getID());
+            if (counter % DELETE_BY == 0) {
+                deleteDependent(ids);
+                ids.clear();
+            }
+        }
+        if (!ids.isEmpty()) {
+            deleteDependent(ids);
         }
 
         ao.deleteWithSQL(Commit.class, "REPO_NAME = ? AND BRANCH = ?", repoName, branch);
+    }
+
+    private void deleteDependent(@NotNull Collection<Integer> ids) {
+        final String idsPlaceholder = Joiner
+                .on(", ")
+                .join(Iterables.transform(ids, Functions.constant("?")));
+        final Object[] fk = ids.toArray();
+        ao.deleteWithSQL(CommitDiff.class, "COMMIT_ID IN (" + idsPlaceholder + ")", fk);
+        ao.deleteWithSQL(CommitIssue.class, "COMMIT_ID IN (" + idsPlaceholder + ")", fk);
     }
 
     @Override
