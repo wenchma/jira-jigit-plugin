@@ -26,9 +26,9 @@ public final class DeletingForcePushHandler implements ForcePushHandler {
     }
 
     @Override
-    public void handle(@NotNull JigitRepo repo, @NotNull String branch) throws IOException {
+    public void handle(@NotNull JigitRepo repo, @NotNull String branch) throws IOException, InterruptedException {
         if (wasBranchForcePushed(repo, branch)) {
-            repoDataCleaner.clearRepoData(repo.getRepoName(), branch);
+            repoDataCleaner.clearRepoData(repo, branch);
         }
     }
 

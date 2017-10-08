@@ -6,8 +6,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "ClassWithTooManyFields"})
 public final class JigitRepo {
     @NotNull
     private final String repoName;
@@ -28,14 +29,28 @@ public final class JigitRepo {
     private long sleepTo;
 
     public JigitRepo(@NotNull String repoName,
-                       @NotNull String serverUrl,
-                       @NotNull String token,
-                       @NotNull String repositoryId,
-                       @NotNull String defaultBranch,
-                       boolean enabled,
-                       int requestTimeout,
-                       int sleepTimeout,
-                       int sleepRequests) {
+                     @NotNull String serverUrl,
+                     @NotNull String token,
+                     @NotNull String repositoryId,
+                     @NotNull String defaultBranch,
+                     boolean enabled,
+                     int requestTimeout,
+                     int sleepTimeout,
+                     int sleepRequests) {
+        this(repoName, serverUrl, token, repositoryId, defaultBranch, enabled, requestTimeout,
+                sleepTimeout, sleepRequests, new HashSet<String>());
+    }
+
+    public JigitRepo(@NotNull String repoName,
+                     @NotNull String serverUrl,
+                     @NotNull String token,
+                     @NotNull String repositoryId,
+                     @NotNull String defaultBranch,
+                     boolean enabled,
+                     int requestTimeout,
+                     int sleepTimeout,
+                     int sleepRequests,
+                     @NotNull Set<String> branches) {
         this.repoName = repoName;
         this.serverUrl = serverUrl;
         this.token = token;
@@ -46,7 +61,7 @@ public final class JigitRepo {
         this.sleepTimeout = sleepTimeout;
         this.sleepRequests = sleepRequests;
         this.sleepTo = 0L;
-        this.branches = new HashSet<>();
+        this.branches = branches;
     }
 
     public boolean isEnabled() {
@@ -83,16 +98,16 @@ public final class JigitRepo {
         return Collections.unmodifiableCollection(branches);
     }
 
-    public boolean addBranch(@NotNull String branch) {
-        return branches.add(branch);
+    public void addBranch(@NotNull String branch) {
+        branches.add(branch);
     }
 
-    public boolean addBranches(@NotNull Collection<String> branches) {
-        return this.branches.addAll(branches);
+    public void addBranches(@NotNull Collection<String> branches) {
+        this.branches.addAll(branches);
     }
 
-    public boolean removeBranch(@NotNull String branch) {
-        return branches.remove(branch);
+    public void removeBranch(@NotNull String branch) {
+        branches.remove(branch);
     }
 
     public int getRequestTimeout() {
@@ -124,8 +139,7 @@ public final class JigitRepo {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
 
-        @SuppressWarnings("QuestionableName")
-        final JigitRepo that = (JigitRepo) other;
+        @SuppressWarnings("QuestionableName") final JigitRepo that = (JigitRepo) other;
 
         return repoName.equals(that.repoName);
 

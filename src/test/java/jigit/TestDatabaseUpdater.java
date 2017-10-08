@@ -1,4 +1,4 @@
-package jigit.ao;
+package jigit;
 
 import jigit.entities.Commit;
 import jigit.entities.CommitDiff;

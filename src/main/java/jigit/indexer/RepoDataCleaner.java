@@ -17,15 +17,31 @@ public final class RepoDataCleaner {
         this.queueItemManager = queueItemManager;
     }
 
-    public void clearRepoData(@NotNull JigitRepo repo) {
-        for (String branch : repo.getBranches()) {
-            clearRepoData(repo.getRepoName(), branch);
+    public void clearRepoData(@NotNull JigitRepo repo) throws InterruptedException {
+        final String repoName = repo.getRepoName();
+        try {
+            DisabledRepos.instance.markDisabled(repoName);
+            Thread.sleep(repo.getRequestTimeout() * 2 + repo.getSleepTimeout());
+            for (String branch : repo.getBranches()) {
+                clearRepoData(repo, branch);
+            }
+            clearRepoData(repo, repo.getDefaultBranch());
+        } finally {
+            DisabledRepos.instance.markEnabled(repo.getRepoName());
         }
-        clearRepoData(repo.getRepoName(), repo.getDefaultBranch());
     }
 
-    public void clearRepoData(@NotNull String repoName, @NotNull String branch) {
+    public void clearRepoData(@NotNull JigitRepo repo, @NotNull String branch) throws InterruptedException {
+        final String repoName = repo.getRepoName();
+        final boolean wasEnabled = !DisabledRepos.instance.disabled(repoName);
+        if (wasEnabled) {
+            DisabledRepos.instance.markDisabled(repoName);
+            Thread.sleep(repo.getRequestTimeout() * 2 + repo.getSleepTimeout());
+        }
         queueItemManager.remove(repoName, branch);
         commitManager.removeCommits(repoName, branch);
+        if (wasEnabled) {
+            DisabledRepos.instance.markEnabled(repoName);
+        }
     }
 }

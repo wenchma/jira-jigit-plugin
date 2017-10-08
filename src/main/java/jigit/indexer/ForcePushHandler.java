@@ -14,5 +14,5 @@ public interface ForcePushHandler {
         }
     };
 
-    void handle(@NotNull JigitRepo repo, @NotNull String branch) throws IOException;
+    void handle(@NotNull JigitRepo repo, @NotNull String branch) throws IOException, InterruptedException;
 }

@@ -59,8 +59,14 @@
     <component key="jigit-jigit-indexer" name="Jigit Indexer"
                class="jigit.indexer.JigitIndexer"/>
 
+    <component key="jigit-indexing-worker-factory" name="Indexing Warker Factory"
+               class="jigit.indexer.IndexingWorkerFactoryImpl"/>
+
     <component key="jigit-repo-data-cleaner" name="Jigit Repo Data Cleaner"
                class="jigit.indexer.RepoDataCleaner"/>
+
+    <component key="jigit-issue-keys-extractor" name="Issue Keys Extractor"
+               class="jigit.indexer.JiraIssueKeysExtractor"/>
 
     <component key="jigit-index-job" class="jigit.job.JigitIndexJobScheduler"
                system="true" public="true">
@@ -73,7 +79,7 @@
 
     <component key="jigit-persist-strategy-factory" class="jigit.indexer.PersistStrategyFactoryImpl"/>
 
-    <component key="jigit-api-adapter-factory" class="jigit.indexer.api.APIAdapterFactory"/>
+    <component key="jigit-api-adapter-factory" class="jigit.indexer.api.APIAdapterFactoryImpl"/>
 
     <component key="jigit-date-formatter" class="jigit.common.JigitDateFormatter"/>
 

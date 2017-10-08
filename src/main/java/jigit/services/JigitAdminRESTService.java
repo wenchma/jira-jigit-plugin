@@ -5,6 +5,7 @@ import com.atlassian.jira.security.PermissionManager;
 import com.atlassian.jira.security.Permissions;
 import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.util.I18nHelper;
+import jigit.indexer.DisabledRepos;
 import jigit.indexer.RepoDataCleaner;
 import jigit.indexer.api.APIAdapterFactory;
 import jigit.settings.JigitRepo;
@@ -54,19 +55,6 @@ public final class JigitAdminRESTService {
         this.settingsManager = settingsManager;
         this.apiAdapterFactory = apiAdapterFactory;
         this.repoDataCleaner = repoDataCleaner;
-    }
-
-    @NotNull
-    private static Response getReferrerResponse(@NotNull HttpServletRequest request) {
-        final String referrer = request.getHeader("referer");
-        final URI uri;
-        try {
-            uri = new URI(referrer);
-        } catch (URISyntaxException e) {
-            return Response.ok(e.getMessage()).status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
-
-        return Response.seeOther(uri).build();
     }
 
     @NotNull
@@ -201,7 +189,7 @@ public final class JigitAdminRESTService {
     @POST
     @Path("/repo/{repo:.+}/clear")
     @Produces(MediaType.TEXT_HTML)
-    public Response clearRepo(@NotNull @PathParam("repo") @DefaultValue("") String repoName) {
+    public Response clearRepo(@NotNull @PathParam("repo") @DefaultValue("") String repoName) throws InterruptedException {
         final Response response = checkUserPermissions(authCtx.getLoggedInUser(), Permissions.ADMINISTER);
         if (response != null) {
             return response;
@@ -242,6 +230,11 @@ public final class JigitAdminRESTService {
                 jigitRepo.getSleepTimeout(), jigitRepo.getSleepRequests());
         newRepo.addBranches(jigitRepo.getBranches());
 
+        if (enabled) {
+            DisabledRepos.instance.markEnabled(repoName);
+        } else {
+            DisabledRepos.instance.markDisabled(repoName);
+        }
         settingsManager.putJigitRepo(newRepo);
 
         return getReferrerResponse(request);
@@ -309,5 +302,18 @@ public final class JigitAdminRESTService {
         }
 
         return resp;
+    }
+
+    @NotNull
+    private static Response getReferrerResponse(@NotNull HttpServletRequest request) {
+        final String referrer = request.getHeader("referer");
+        final URI uri;
+        try {
+            uri = new URI(referrer);
+        } catch (URISyntaxException e) {
+            return Response.ok(e.getMessage()).status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return Response.seeOther(uri).build();
     }
 }
