@@ -62,10 +62,10 @@ public abstract class DBTester {
 
     @After
     public void tearDown() {
-        activeObjects.deleteWithSQL(CommitIssue.class, "1 = 1");
-        activeObjects.deleteWithSQL(CommitDiff.class, "1 = 1");
-        activeObjects.deleteWithSQL(Commit.class, "1 = 1");
-        activeObjects.deleteWithSQL(QueueItem.class, "1 = 1");
+        activeObjects.deleteWithSQL(CommitIssue.class, "1=1");
+        activeObjects.deleteWithSQL(CommitDiff.class, "1=1");
+        activeObjects.deleteWithSQL(Commit.class, "1=1");
+        activeObjects.deleteWithSQL(QueueItem.class, "1=1");
     }
 
     protected void createCommitStuff(@NotNull String branch, @NotNull List<String> issueKeys) throws ParseException {
