@@ -84,9 +84,7 @@ final class IndexingWorker implements Callable<JigitRepo> {
     private Map<String, ForcePushHandler> getBranchForcePushHandlers() {
         final Map<String, ForcePushHandler> branchHandlers = new LinkedHashMap<>();
         branchHandlers.put(repo.getDefaultBranch(), ForcePushHandler.DO_NOTHING);
-        final ArrayList<String> branches = new ArrayList<>(repo.getBranches());
-        Collections.sort(branches);
-        for (String branch : branches) {
+        for (String branch : repo.getBranches()) {
             branchHandlers.put(branch, deletingForcePushHandler);
         }
         return branchHandlers;

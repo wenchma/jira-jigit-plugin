@@ -5,8 +5,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 @SuppressWarnings({"unused", "ClassWithTooManyFields"})
 public final class JigitRepo {
@@ -21,7 +21,7 @@ public final class JigitRepo {
     @NotNull
     private final String defaultBranch;
     @NotNull
-    private final Collection<String> branches;
+    private final SortedSet<String> branches;
     private final boolean enabled;
     private final int requestTimeout;
     private final int sleepTimeout;
@@ -38,7 +38,7 @@ public final class JigitRepo {
                      int sleepTimeout,
                      int sleepRequests) {
         this(repoName, serverUrl, token, repositoryId, defaultBranch, enabled, requestTimeout,
-                sleepTimeout, sleepRequests, new HashSet<String>());
+                sleepTimeout, sleepRequests, new TreeSet<String>());
     }
 
     public JigitRepo(@NotNull String repoName,
@@ -50,7 +50,7 @@ public final class JigitRepo {
                      int requestTimeout,
                      int sleepTimeout,
                      int sleepRequests,
-                     @NotNull Set<String> branches) {
+                     @NotNull SortedSet<String> branches) {
         this.repoName = repoName;
         this.serverUrl = serverUrl;
         this.token = token;
@@ -61,7 +61,7 @@ public final class JigitRepo {
         this.sleepTimeout = sleepTimeout;
         this.sleepRequests = sleepRequests;
         this.sleepTo = 0L;
-        this.branches = branches;
+        this.branches = new TreeSet<>(branches);
     }
 
     public boolean isEnabled() {
@@ -94,8 +94,8 @@ public final class JigitRepo {
     }
 
     @NotNull
-    public Collection<String> getBranches() {
-        return Collections.unmodifiableCollection(branches);
+    public SortedSet<String> getBranches() {
+        return Collections.unmodifiableSortedSet(branches);
     }
 
     public void addBranch(@NotNull String branch) {

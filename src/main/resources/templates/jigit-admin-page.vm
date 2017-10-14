@@ -56,7 +56,8 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
                     $jigitRepo.getServerUrl()
                 </td>
                 <td data-val="$jigitRepo.getRepositoryId()" data-name="repository_id">
-                    $jigitRepo.getRepositoryId()
+                    #set($repoId = $jigitRepo.getRepositoryId())
+                    <a href="${jigitRepo.getServerUrl()}/${repoId}">$repoId</a>
                 </td>
                 <td data-val="$jigitRepo.getDefaultBranch()" data-name="def_branch" style="text-align: left;">
                     <table class="branch-list" cellpadding="0" cellspacing="0">

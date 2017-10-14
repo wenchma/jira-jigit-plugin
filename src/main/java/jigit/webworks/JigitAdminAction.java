@@ -9,8 +9,10 @@ import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("unused")
@@ -41,7 +43,7 @@ public final class JigitAdminAction extends JiraWebActionSupport {
 
     @NotNull
     public Map<String, JigitRepo> getJigitRepos() {
-        return settingsManager.getJigitRepos();
+        return Collections.unmodifiableMap(new TreeMap<>(settingsManager.getJigitRepos()));
     }
 
     @NotNull

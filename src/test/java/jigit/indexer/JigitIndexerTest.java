@@ -24,6 +24,7 @@ import org.junit.rules.Timeout;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +45,7 @@ public final class JigitIndexerTest extends DBTester {
     private final JigitRepo jigitRepo =
             new JigitRepo(REPO_NAME, "url", "token", "repoId", APIAdaptedStub.MASTER, true, 1,
                     (int) TimeUnit.SECONDS.toMillis(1), 2,
-                    Sets.newHashSet(APIAdaptedStub.BRANCH1, APIAdaptedStub.BRANCH2));
+                    Sets.newTreeSet(Arrays.asList(APIAdaptedStub.BRANCH1, APIAdaptedStub.BRANCH2)));
     @NotNull
     private final JigitSettingsManager jigitSettingsManager = mock(JigitSettingsManager.class);
     @NotNull
