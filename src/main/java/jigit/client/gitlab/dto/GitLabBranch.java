@@ -4,15 +4,23 @@ import org.jetbrains.annotations.NotNull;
 
 public final class GitLabBranch {
     @NotNull
+    private final String name;
+    @NotNull
     private final GitLabBranch.Commit commit;
 
-    public GitLabBranch(@NotNull GitLabBranch.Commit commit) {
+    public GitLabBranch(@NotNull String name, @NotNull Commit commit) {
+        this.name = name;
         this.commit = commit;
     }
 
     @NotNull
     public String getId() {
         return commit.getId();
+    }
+
+    @NotNull
+    public String getName() {
+        return name;
     }
 
     private static final class Commit {

@@ -1,5 +1,6 @@
 package jigit.client.gitlab;
 
+import com.google.gson.reflect.TypeToken;
 import jigit.client.gitlab.dto.GitLabBranch;
 import jigit.client.gitlab.dto.GitLabCommit;
 import jigit.client.gitlab.dto.GitLabFile;
@@ -8,9 +9,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
 import java.net.URLEncoder;
+import java.util.List;
 
 public final class GitLabRepositoryAPI {
+    private static final @NotNull Type LIST_OF_BRANCHES = new TypeToken<List<GitLabBranch>>() {
+    }.getType();
     @NotNull
     private static final String ENCODING = "UTF-8";
     @NotNull
@@ -45,6 +50,12 @@ public final class GitLabRepositoryAPI {
     public GitLabBranch getBranch(@NotNull String branchName) throws IOException {
         return gitLab.get(repositoryPath + BRANCHES_PATH + '/' + branchName)
                 .withResultOf(GitLabBranch.class);
+    }
+
+    @Nullable
+    public List<GitLabBranch> branches() throws IOException {
+        return gitLab.get(repositoryPath + BRANCHES_PATH)
+                .withResultOf(LIST_OF_BRANCHES);
     }
 
     @Nullable

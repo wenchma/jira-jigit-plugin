@@ -1,13 +1,18 @@
 package jigit.client.github;
 
+import com.google.gson.reflect.TypeToken;
 import jigit.client.github.dto.GitHubBranch;
 import jigit.client.github.dto.GitHubCommit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.List;
 
 public final class GitHubRepositoryAPI {
+    private static final @NotNull Type LIST_OF_BRANCHES = new TypeToken<List<GitHubBranch>>() {
+    }.getType();
     @NotNull
     private static final String REPOS_PATH = "/repos";
     @NotNull
@@ -34,5 +39,11 @@ public final class GitHubRepositoryAPI {
     public GitHubBranch getBranch(@NotNull String branchName) throws IOException {
         return gitHub.get(REPOS_PATH + '/' + repository + BRANCHES_PATH + '/' + branchName)
                 .withResultOf(GitHubBranch.class);
+    }
+
+    @Nullable
+    public List<GitHubBranch> branches() throws IOException {
+        return gitHub.get(REPOS_PATH + '/' + repository + BRANCHES_PATH)
+                .withResultOf(LIST_OF_BRANCHES);
     }
 }

@@ -1,6 +1,7 @@
 package api.client.http;
 
 import api.APIException;
+import com.google.common.base.Function;
 import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
@@ -9,10 +10,14 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Map;
+
+//import com.google.common.base.Function;
 
 public final class ApiHttpRequester {
     @NotNull
@@ -46,11 +51,21 @@ public final class ApiHttpRequester {
     }
 
     @Nullable
-    public <T> T withResultOf(@NotNull Class<T> type) throws IOException {
+    public <T> T withResultOf(final @NotNull Class<T> type) throws IOException {
+        return withResultOf(new ReaderOfClass<>(type));
+    }
+
+    @Nullable
+    public <T> T withResultOf(final @NotNull Type type) throws IOException {
+        return withResultOf(new ReaderOfType<T>(type));
+    }
+
+    @Nullable
+    private <T> T withResultOf(@NotNull Function<Reader, T> streamReaderFunction) throws IOException {
         HttpURLConnection connection = null;
         try {
             connection = buildConnection();
-            return parse(connection, type);
+            return parse(connection, streamReaderFunction);
         } finally {
             IOUtils.close(connection);
         }
@@ -74,11 +89,11 @@ public final class ApiHttpRequester {
 
     @SuppressWarnings("OverlyBroadCatchBlock")
     @Nullable
-    private <T> T parse(@NotNull HttpURLConnection connection, @NotNull Class<T> type) throws IOException {
+    private <T> T parse(@NotNull HttpURLConnection connection, @NotNull Function<Reader, T> streamReaderFunction) throws IOException {
         InputStreamReader reader = null;
         try {
             reader = new InputStreamReader(connection.getInputStream(), ENCODING);
-            return GSON.fromJson(reader, type);
+            return streamReaderFunction.apply(reader);
         } catch (IOException e) {
             handleError(e, connection);
         } finally {
@@ -104,6 +119,38 @@ public final class ApiHttpRequester {
             throw new APIException(error, connection.getResponseCode(), e);
         } finally {
             IOUtils.closeQuietly(errorStream);
+        }
+    }
+
+    private static final class ReaderOfClass<T> implements Function<Reader, T> {
+        private final @NotNull Class<T> type;
+
+        private ReaderOfClass(@NotNull Class<T> type) {
+            this.type = type;
+        }
+
+        @Override
+        public @Nullable T apply(@Nullable Reader reader) {
+            if (reader == null) {
+                return null;
+            }
+            return GSON.fromJson(reader, type);
+        }
+    }
+
+    private static final class ReaderOfType<T> implements Function<Reader, T> {
+        private final @NotNull Type type;
+
+        private ReaderOfType(@NotNull Type type) {
+            this.type = type;
+        }
+
+        @Override
+        public @Nullable T apply(@Nullable Reader reader) {
+            if (reader == null) {
+                return null;
+            }
+            return GSON.fromJson(reader, type);
         }
     }
 }
