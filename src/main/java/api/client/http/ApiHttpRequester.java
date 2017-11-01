@@ -1,7 +1,6 @@
 package api.client.http;
 
 import api.APIException;
-import com.google.common.base.Function;
 import com.google.gson.Gson;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
@@ -130,10 +129,7 @@ public final class ApiHttpRequester {
         }
 
         @Override
-        public @Nullable T apply(@Nullable Reader reader) {
-            if (reader == null) {
-                return null;
-            }
+        public @NotNull T apply(@NotNull Reader reader) {
             return GSON.fromJson(reader, type);
         }
     }
@@ -146,11 +142,12 @@ public final class ApiHttpRequester {
         }
 
         @Override
-        public @Nullable T apply(@Nullable Reader reader) {
-            if (reader == null) {
-                return null;
-            }
+        public @NotNull T apply(@NotNull Reader reader) {
             return GSON.fromJson(reader, type);
         }
+    }
+
+    public interface Function<F, T> {
+        @NotNull T apply(@NotNull F var1);
     }
 }
