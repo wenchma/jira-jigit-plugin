@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface APIAdapter {
     @NotNull
@@ -13,4 +14,7 @@ public interface APIAdapter {
     String getHeadCommitSha1(@NotNull String branch) throws IOException;
 
     long getRequestsQuantity();
+
+    @NotNull
+    List<String> branches() throws IOException;
 }

@@ -11,6 +11,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public final class GitLabAPIAdapter implements APIAdapter {
     @NotNull
@@ -57,6 +60,17 @@ public final class GitLabAPIAdapter implements APIAdapter {
     @Override
     public long getRequestsQuantity() {
         return requestsCounter.value();
+    }
+
+    @NotNull
+    @Override
+    public List<String> branches() throws IOException {
+        final List<String> branches = new ArrayList<>();
+        requestsCounter.increase();
+        for (GitLabBranch branch : repositoryAPI.branches()) {
+            branches.add(branch.getName());
+        }
+        return Collections.unmodifiableList(branches);
     }
 }
 

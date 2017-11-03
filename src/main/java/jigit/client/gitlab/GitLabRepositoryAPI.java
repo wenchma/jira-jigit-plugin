@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.List;
 
 public final class GitLabRepositoryAPI {
@@ -52,10 +53,10 @@ public final class GitLabRepositoryAPI {
                 .withResultOf(GitLabBranch.class);
     }
 
-    @Nullable
+    @NotNull
     public List<GitLabBranch> branches() throws IOException {
-        return gitLab.get(repositoryPath + BRANCHES_PATH)
-                .withResultOf(LIST_OF_BRANCHES);
+        final List<GitLabBranch> branches = gitLab.get(repositoryPath + BRANCHES_PATH).withResultOf(LIST_OF_BRANCHES);
+        return branches == null ? Collections.<GitLabBranch>emptyList() : branches;
     }
 
     @Nullable

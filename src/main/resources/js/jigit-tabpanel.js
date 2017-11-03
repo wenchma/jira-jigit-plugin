@@ -2,7 +2,7 @@ if (JIRA.ViewIssueTabs && JIRA.ViewIssueTabs.onTabReady) {
     JIRA.ViewIssueTabs.onTabReady(function () {
         function copyToClip(text) {
             var input = AJS.$('#jigit-copy-to-clip-container');
-            if (input.size() == 0) {
+            if (input.size() === 0) {
                 input = AJS.$("<input type='text' id='jigit-copy-to-clip-container'>");
                 AJS.$("body").after(input);
             }

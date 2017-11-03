@@ -27,6 +27,7 @@ public final class JigitRepo {
     private final int sleepTimeout;
     private final int sleepRequests;
     private long sleepTo;
+    private final boolean indexAllBranches;
 
     public JigitRepo(@NotNull String repoName,
                      @NotNull String serverUrl,
@@ -36,9 +37,10 @@ public final class JigitRepo {
                      boolean enabled,
                      int requestTimeout,
                      int sleepTimeout,
-                     int sleepRequests) {
+                     int sleepRequests,
+                     boolean indexAllBranches) {
         this(repoName, serverUrl, token, repositoryId, defaultBranch, enabled, requestTimeout,
-                sleepTimeout, sleepRequests, new TreeSet<String>());
+                sleepTimeout, sleepRequests, indexAllBranches, new TreeSet<String>());
     }
 
     public JigitRepo(@NotNull String repoName,
@@ -50,6 +52,7 @@ public final class JigitRepo {
                      int requestTimeout,
                      int sleepTimeout,
                      int sleepRequests,
+                     boolean indexAllBranches,
                      @NotNull SortedSet<String> branches) {
         this.repoName = repoName;
         this.serverUrl = serverUrl;
@@ -61,6 +64,7 @@ public final class JigitRepo {
         this.sleepTimeout = sleepTimeout;
         this.sleepRequests = sleepRequests;
         this.sleepTo = 0L;
+        this.indexAllBranches = indexAllBranches;
         this.branches = new TreeSet<>(branches);
     }
 
@@ -132,6 +136,10 @@ public final class JigitRepo {
 
     public boolean isNeedToIndex() {
         return enabled && sleepTo < System.currentTimeMillis();
+    }
+
+    public boolean isIndexAllBranches() {
+        return indexAllBranches;
     }
 
     @Override

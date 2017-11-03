@@ -68,7 +68,8 @@ public final class JigitAdminRESTService {
                             @NotNull @FormParam("def_branch") @DefaultValue("") String branch,
                             @NotNull @FormParam("request_timeout") @DefaultValue("10") Integer requestTimeout,
                             @NotNull @FormParam("sleep_timeout") @DefaultValue("10") Integer sleepTimeout,
-                            @NotNull @FormParam("sleep_requests") @DefaultValue("100") Integer sleepRequests) {
+                            @NotNull @FormParam("sleep_requests") @DefaultValue("100") Integer sleepRequests,
+                            @NotNull @FormParam("index_all_branches") @DefaultValue("false") Boolean indexAllBranches) {
         final Response response = checkUserPermissions(authCtx.getLoggedInUser(), Permissions.ADMINISTER);
         if (response != null) {
             return response;
@@ -83,7 +84,7 @@ public final class JigitAdminRESTService {
 
         final JigitRepo jigitRepo = new JigitRepo(repoName.trim(), url.trim(), token, repositoryId.trim(),
                 branch.trim(), true, (int) TIME_UNIT.toMillis(requestTimeout),
-                (int) TIME_UNIT.toMillis(sleepTimeout), sleepRequests);
+                (int) TIME_UNIT.toMillis(sleepTimeout), sleepRequests, indexAllBranches);
 
         settingsManager.putJigitRepo(jigitRepo);
 
@@ -97,7 +98,7 @@ public final class JigitAdminRESTService {
     public Response testRepo(@NotNull @FormParam("repo_name") @DefaultValue("") String repoName,
                              @NotNull @FormParam("url") @DefaultValue("") String url,
                              @NotNull @FormParam("token") @DefaultValue("") String token,
-                             @NotNull @FormParam("change_token") @DefaultValue("false") Boolean change_token,
+                             @NotNull @FormParam("change_token") @DefaultValue("") HtmlCheckbox changeToken,
                              @NotNull @FormParam("repository_id") @DefaultValue("") String repositoryId,
                              @NotNull @FormParam("def_branch") @DefaultValue("") String branch,
                              @NotNull @FormParam("request_timeout") @DefaultValue("10") Integer requestTimeout) {
@@ -111,14 +112,14 @@ public final class JigitAdminRESTService {
 
         final JigitRepo existedJigitRepo = settingsManager.getJigitRepo(repoName);
         final JigitRepo jigitRepo;
-        if (change_token || existedJigitRepo == null) {
+        if (changeToken.isChecked() || existedJigitRepo == null) {
             jigitRepo = new JigitRepo(repoName, url.trim(), token, repositoryId.trim(),
                     branch.trim(), true, (int) TIME_UNIT.toMillis(requestTimeout),
-                    (int) TIME_UNIT.toMillis(0), 0);
+                    (int) TIME_UNIT.toMillis(0), 0, false);
         } else {
             jigitRepo = new JigitRepo(repoName, url.trim(), existedJigitRepo.getToken(), repositoryId.trim(),
                     branch.trim(), true, (int) TIME_UNIT.toMillis(requestTimeout),
-                    (int) TIME_UNIT.toMillis(0), 0);
+                    (int) TIME_UNIT.toMillis(0), 0, false);
         }
 
         try {
@@ -139,15 +140,16 @@ public final class JigitAdminRESTService {
                              @NotNull @FormParam("token") @DefaultValue("") String token,
                              @NotNull @FormParam("repository_id") @DefaultValue("") String repositoryId,
                              @NotNull @FormParam("def_branch") @DefaultValue("") String branch,
-                             @Nullable @FormParam("change_token") Boolean change_token,
+                             @NotNull @FormParam("change_token") @DefaultValue("") HtmlCheckbox changeToken,
                              @NotNull @FormParam("request_timeout") @DefaultValue("10") Integer requestTimeout,
                              @NotNull @FormParam("sleep_timeout") @DefaultValue("10") Integer sleepTimeout,
-                             @NotNull @FormParam("sleep_requests") @DefaultValue("100") Integer sleepRequest) {
+                             @NotNull @FormParam("sleep_requests") @DefaultValue("100") Integer sleepRequest,
+                             @NotNull @FormParam("index_all_branches") @DefaultValue("false") Boolean indexAllBranches) {
         final Response response = checkUserPermissions(authCtx.getLoggedInUser(), Permissions.ADMINISTER);
         if (response != null) {
             return response;
         }
-        if (change_token == null || repoName.isEmpty() || url.isEmpty() || repositoryId.isEmpty() || branch.isEmpty()) {
+        if (repoName.isEmpty() || url.isEmpty() || repositoryId.isEmpty() || branch.isEmpty()) {
             return Response.ok(i18n.getText("jigit.error.params.empty")).status(Response.Status.BAD_REQUEST).build();
         }
 
@@ -156,10 +158,10 @@ public final class JigitAdminRESTService {
             return Response.ok(i18n.getText("jigit.error.params.invalid")).status(Response.Status.BAD_REQUEST).build();
         }
 
-        final String newToken = change_token ? token : jigitRepo.getToken();
+        final String newToken = changeToken.isChecked() ? token : jigitRepo.getToken();
         final JigitRepo newRepo = new JigitRepo(repoName.trim(), url.trim(), newToken, repositoryId.trim(),
                 branch.trim(), jigitRepo.isEnabled(), (int) TIME_UNIT.toMillis(requestTimeout),
-                (int) TIME_UNIT.toMillis(sleepTimeout), sleepRequest);
+                (int) TIME_UNIT.toMillis(sleepTimeout), sleepRequest, indexAllBranches);
         newRepo.addBranches(jigitRepo.getBranches());
 
         settingsManager.putJigitRepo(newRepo);
@@ -189,7 +191,7 @@ public final class JigitAdminRESTService {
     @POST
     @Path("/repo/{repo:.+}/clear")
     @Produces(MediaType.TEXT_HTML)
-    public Response clearRepo(@NotNull @PathParam("repo") @DefaultValue("") String repoName) throws InterruptedException {
+    public Response clearRepo(@NotNull @PathParam("repo") @DefaultValue("") String repoName) throws InterruptedException, IOException {
         final Response response = checkUserPermissions(authCtx.getLoggedInUser(), Permissions.ADMINISTER);
         if (response != null) {
             return response;
@@ -227,7 +229,7 @@ public final class JigitAdminRESTService {
         final JigitRepo newRepo = new JigitRepo(jigitRepo.getRepoName(), jigitRepo.getServerUrl(),
                 jigitRepo.getToken(), jigitRepo.getRepositoryId(),
                 jigitRepo.getDefaultBranch(), enabled, jigitRepo.getRequestTimeout(),
-                jigitRepo.getSleepTimeout(), jigitRepo.getSleepRequests());
+                jigitRepo.getSleepTimeout(), jigitRepo.getSleepRequests(), jigitRepo.isIndexAllBranches());
         newRepo.addBranches(jigitRepo.getBranches());
 
         if (enabled) {
@@ -316,4 +318,5 @@ public final class JigitAdminRESTService {
 
         return Response.seeOther(uri).build();
     }
+
 }

@@ -4,7 +4,7 @@ AJS.$(function () {
     AJS.$(".add-jigit-repo-branch-button").click(addRepoBranch);
     AJS.$("body").delegate("#change_token", "click", function () {
         var checkbox = AJS.$(this);
-        if (checkbox.attr("checked") == 'checked') {
+        if (checkbox.attr("checked") === 'checked') {
             checkbox.closest("form").find("[name='token']").prop('disabled', false);
         } else {
             checkbox.closest("form").find("[name='token']").prop('disabled', true);
@@ -16,13 +16,12 @@ AJS.$(function () {
 
     function addRepoBranch() {
         var form = AJS.$(this).closest("tr").find("form");
-        var data = getFormData(form);
 
         AJS.$.ajax({
             url: form.attr("action"),
             type: "POST",
             dataType: "json",
-            data: data,
+            data: form.serialize(),
             async: false,
             error: function (xhr) {
                 message("#page-message-container",
@@ -50,7 +49,8 @@ AJS.$(function () {
 
         getActionTriggerElement(this).closest("tr").find("[data-val][data-name]").each(function () {
             var element = AJS.$(this);
-            interior.find("[name='" + element.attr("data-name") + "']").val(element.attr("data-val"));
+            var inputs = interior.find("[name='" + element.attr("data-name") + "']");
+            inputs.val(inputs.first().is(":radio") ? [element.attr("data-val")] : element.attr("data-val"));
         });
 
         showDialog(interior, "edit-jigit-repo-dialog");
@@ -59,12 +59,12 @@ AJS.$(function () {
     function showDialog(interior, dialogId) {
         var dialog = new AJS.Dialog({
             width: 520,
-            height: 520,
+            height: 600,
             id: dialogId
         });
 
         JIRA.bind("Dialog.beforeHide", function (event, dialog, reason) {
-            return dialog.attr("id") != dialogId || reason != "esc";
+            return dialog.attr("id") !== dialogId || reason !== "esc";
         });
 
         dialog.addHeader(AJS.I18n.getText("jigit.settings.table.columns.jigit.project"));
@@ -77,13 +77,12 @@ AJS.$(function () {
             AJS.I18n.getText("jigit.buttons.test.connection"),
             function () {
                 var form = interior.find("form");
-                var data = getFormData(form);
 
                 AJS.$.ajax({
                     url: AJS.contextPath() + "/rest/jigit/1.0/repo/test",
                     type: "POST",
                     dataType: "json",
-                    data: data,
+                    data: form.serialize(),
                     async: false,
                     error: function (xhr) {
                         message(messageContainerId,
@@ -104,13 +103,12 @@ AJS.$(function () {
             AJS.I18n.getText("jigit.buttons.ok"),
             function () {
                 var form = interior.find("form");
-                var data = getFormData(form);
 
                 AJS.$.ajax({
                     url: form.attr("action"),
                     type: "POST",
                     dataType: "json",
-                    data: data,
+                    data: form.serialize(),
                     async: false,
                     error: function (xhr) {
                         message(messageContainerId,
@@ -143,22 +141,5 @@ AJS.$(function () {
             closeable: true,
             body: text
         }]);
-    }
-
-    function getFormData(form) {
-        if (!form) {
-            return {};
-        }
-        var data = {};
-        form.find(".form-data").each(function () {
-            var element = AJS.$(this);
-            if (element.is(":checkbox")) {
-                data[element.attr("name")] = element.attr("checked") == "checked";
-            } else {
-                data[element.attr("name")] = element.val();
-            }
-        });
-
-        return data;
     }
 });

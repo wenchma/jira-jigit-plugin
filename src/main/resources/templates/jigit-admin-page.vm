@@ -78,49 +78,60 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
                                 </table>
                             </td>
                         </tr>
-                            #foreach($branch in $jigitRepo.getBranches())
+                            #if($jigitRepo.isIndexAllBranches())
+                            <tr>
+                                <td data-val="true" data-name="index_all_branches"
+                                    style="text-align: left;font-style: italic;">
+                                    Index all branches
+                                </td>
+                            </tr>
+                            #else
+                                #foreach($branch in $jigitRepo.getBranches())
+                                <tr>
+                                    <td>
+                                        <table class="branches">
+                                            <tr>
+                                                <td>
+                                                    $branch
+                                                    <span class="aui-badge" title="Commits">
+                                                        $action.getCommitCount($jigitRepo.getRepoName(), $branch)
+                                        </span>
+                                                </td>
+                                                <td>
+                                                    <form id="remove-repo-branch-${settingsKey}-${branch}" method="post"
+                                                          onsubmit="return confirm('$i18n.getText(
+                                                              "jigit.confirm.delete.branch")');"
+                                                          action="$action.getBaseUrl()/rest/jigit/1.0/repo/$settingsKey/branch/$branch/remove">
+                                                        <input class="aui-button" type="submit"
+                                                               value="$i18n.getText('jigit.buttons.delete')">
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                #end
                             <tr>
                                 <td>
                                     <table class="branches">
                                         <tr>
                                             <td>
-                                                $branch
-                                                <span class="aui-badge" title="Commits">
-                                                    $action.getCommitCount($jigitRepo.getRepoName(), $branch)
-                                        </span>
+                                                <form id="add-jigit-repo-branch-${settingsKey}" method="post"
+                                                      class="aui"
+                                                      action="$action.getBaseUrl()/rest/jigit/1.0/repo/$settingsKey/branch/add">
+                                                    <input type="text" name="branch" class="text form-data">
+                                                </form>
                                             </td>
                                             <td>
-                                                <form id="remove-repo-branch-${settingsKey}-${branch}" method="post"
-                                                      onsubmit="return confirm('$i18n.getText("jigit.confirm.delete.branch")');"
-                                                      action="$action.getBaseUrl()/rest/jigit/1.0/repo/$settingsKey/branch/$branch/remove">
-                                                    <input class="aui-button" type="submit"
-                                                           value="$i18n.getText('jigit.buttons.delete')">
-                                                </form>
+                                                <input class="aui-button add-jigit-repo-branch-button"
+                                                       type="button"
+                                                       value="$i18n.getText('jigit.buttons.add')">
                                             </td>
                                         </tr>
                                     </table>
                                 </td>
                             </tr>
                             #end
-                        <tr>
-                            <td>
-                                <table class="branches">
-                                    <tr>
-                                        <td>
-                                            <form id="add-jigit-repo-branch-${settingsKey}" method="post" class="aui"
-                                                  action="$action.getBaseUrl()/rest/jigit/1.0/repo/$settingsKey/branch/add">
-                                                <input type="text" name="branch" class="text form-data">
-                                            </form>
-                                        </td>
-                                        <td>
-                                            <input class="aui-button add-jigit-repo-branch-button"
-                                                   type="button"
-                                                   value="$i18n.getText('jigit.buttons.add')">
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
                         </tbody>
                     </table>
                 </td>
@@ -221,6 +232,13 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
                 <input type="text" name="def_branch" class="text form-data" value="master"/>
             </div>
             <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.index")</label>
+                <p><label><input type="radio" name="index_all_branches" class="radio form-data"
+                                 value="true"/>$i18n.getText("jigit.settings.table.columns.index.all")</label></p>
+                <p><label><input type="radio" name="index_all_branches" class="radio form-data" value="false"
+                                 checked/>$i18n.getText("jigit.settings.table.columns.index.selected")</label></p>
+            </div>
+            <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.request.timeout")</label>
                 <input type="text" name="request_timeout" class="text form-data" value="10"/> $i18n.getText(
                 "jigit.settings.table.columns.sleep.timeunit")
@@ -265,6 +283,13 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.default.branch")</label>
                 <input type="text" name="def_branch" class="text form-data"/>
+            </div>
+            <div class="field-group">
+                <label>$i18n.getText("jigit.settings.table.columns.index")</label>
+                <p><label><input type="radio" name="index_all_branches" class="radio form-data"
+                                 value="true"/>$i18n.getText("jigit.settings.table.columns.index.all")</label></p>
+                <p><label><input type="radio" name="index_all_branches" class="radio form-data" value="false"
+                                 checked/>$i18n.getText("jigit.settings.table.columns.index.selected")</label></p>
             </div>
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.request.timeout")</label>

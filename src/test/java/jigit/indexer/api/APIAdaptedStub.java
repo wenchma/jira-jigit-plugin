@@ -3,10 +3,7 @@ package jigit.indexer.api;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Collections.singletonList;
 
@@ -77,5 +74,11 @@ public final class APIAdaptedStub implements APIAdapter {
     @Override
     public long getRequestsQuantity() {
         return requestsCounter.value();
+    }
+
+    @NotNull
+    @Override
+    public List<String> branches() {
+        return Arrays.asList(MASTER, BRANCH1, BRANCH2);
     }
 }

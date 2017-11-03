@@ -81,10 +81,11 @@ final class IndexingWorker implements Callable<JigitRepo> {
     }
 
     @NotNull
-    private Map<String, ForcePushHandler> getBranchForcePushHandlers() {
+    private Map<String, ForcePushHandler> getBranchForcePushHandlers() throws IOException {
         final Map<String, ForcePushHandler> branchHandlers = new LinkedHashMap<>();
         branchHandlers.put(repo.getDefaultBranch(), ForcePushHandler.DO_NOTHING);
-        for (String branch : repo.getBranches()) {
+        final SortedSet<String> branches = BranchesStrategyFactory.buildBranchesStrategy(repo, apiAdapter).branches();
+        for (String branch : branches) {
             branchHandlers.put(branch, deletingForcePushHandler);
         }
         return branchHandlers;

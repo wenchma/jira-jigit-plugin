@@ -44,7 +44,7 @@ public final class JigitIndexerTest extends DBTester {
     @NotNull
     private final JigitRepo jigitRepo =
             new JigitRepo(REPO_NAME, "url", "token", "repoId", APIAdaptedStub.MASTER, true, 1,
-                    (int) TimeUnit.SECONDS.toMillis(1), 2,
+                    (int) TimeUnit.SECONDS.toMillis(1), 2, false,
                     Sets.newTreeSet(Arrays.asList(APIAdaptedStub.BRANCH1, APIAdaptedStub.BRANCH2)));
     @NotNull
     private final JigitSettingsManager jigitSettingsManager = mock(JigitSettingsManager.class);
@@ -67,8 +67,9 @@ public final class JigitIndexerTest extends DBTester {
                     put(jigitRepo.getRepoName(), jigitRepo);
                 }});
         final CommitManager commitManager = getCommitManager();
-        repoDataCleaner = new RepoDataCleaner(commitManager, queueItemManager);
-        final IndexingWorkerFactory indexingWorkerFactory = new IndexingWorkerFactoryImpl(new TestAPIAdapterFactory(),
+        final TestAPIAdapterFactory apiAdapterFactory = new TestAPIAdapterFactory();
+        repoDataCleaner = new RepoDataCleaner(apiAdapterFactory, commitManager, queueItemManager);
+        final IndexingWorkerFactory indexingWorkerFactory = new IndexingWorkerFactoryImpl(apiAdapterFactory,
                 queueItemManager, new PersistStrategyFactoryImpl(commitManager), commitManager,
                 repoDataCleaner, issueKeysExtractor);
         jigitIndexer = new JigitIndexer(jigitSettingsManager, indexingWorkerFactory);
@@ -121,7 +122,7 @@ public final class JigitIndexerTest extends DBTester {
         final Future<Boolean> futureResult = executorService.submit(new Callable<Boolean>() {
             @NotNull
             @Override
-            public Boolean call() {
+            public Boolean call() throws IOException {
                 try {
                     Thread.sleep(jigitRepo.getSleepTimeout());
                     final int commitsNumber = getEntityManager().count(Commit.class);

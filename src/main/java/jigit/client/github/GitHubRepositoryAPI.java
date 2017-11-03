@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.List;
 
 public final class GitHubRepositoryAPI {
@@ -41,9 +42,11 @@ public final class GitHubRepositoryAPI {
                 .withResultOf(GitHubBranch.class);
     }
 
-    @Nullable
+    @NotNull
     public List<GitHubBranch> branches() throws IOException {
-        return gitHub.get(REPOS_PATH + '/' + repository + BRANCHES_PATH)
+        final List<GitHubBranch> branches = gitHub
+                .get(REPOS_PATH + '/' + repository + BRANCHES_PATH)
                 .withResultOf(LIST_OF_BRANCHES);
+        return branches == null ? Collections.<GitHubBranch>emptyList() : branches;
     }
 }

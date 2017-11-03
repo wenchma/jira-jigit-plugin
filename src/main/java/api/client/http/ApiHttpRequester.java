@@ -50,12 +50,12 @@ public final class ApiHttpRequester {
     }
 
     @Nullable
-    public <T> T withResultOf(final @NotNull Class<T> type) throws IOException {
+    public <T> T withResultOf(@NotNull Class<T> type) throws IOException {
         return withResultOf(new ReaderOfClass<>(type));
     }
 
     @Nullable
-    public <T> T withResultOf(final @NotNull Type type) throws IOException {
+    public <T> T withResultOf(@NotNull Type type) throws IOException {
         return withResultOf(new ReaderOfType<T>(type));
     }
 
@@ -148,6 +148,6 @@ public final class ApiHttpRequester {
     }
 
     public interface Function<F, T> {
-        @NotNull T apply(@NotNull F var1);
+        @NotNull T apply(@NotNull F arg);
     }
 }
