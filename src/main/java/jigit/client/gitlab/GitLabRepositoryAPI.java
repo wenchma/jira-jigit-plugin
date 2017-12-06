@@ -20,13 +20,13 @@ public final class GitLabRepositoryAPI {
     @NotNull
     private static final String ENCODING = "UTF-8";
     @NotNull
-    private static final String PROJECTS_PATH = "/api/v3/projects";
+    private static final String PROJECTS_PATH = "api/v3/projects";
     @NotNull
-    private static final String BRANCHES_PATH = "/repository/branches";
+    private static final String BRANCHES_PATH = "repository/branches";
     @NotNull
-    private static final String COMMITS_PATH = "/repository/commits";
+    private static final String COMMITS_PATH = "repository/commits";
     @NotNull
-    private static final String DIFF_PATH = "/diff";
+    private static final String DIFF_PATH = "diff";
     @NotNull
     private final String repositoryPath;
     @NotNull
@@ -35,7 +35,7 @@ public final class GitLabRepositoryAPI {
     public GitLabRepositoryAPI(@NotNull String repository, @NotNull GitLab gitLab) {
         this.gitLab = gitLab;
         try {
-            this.repositoryPath = PROJECTS_PATH + '/' + URLEncoder.encode(repository, ENCODING);
+            this.repositoryPath = '/' + PROJECTS_PATH + '/' + URLEncoder.encode(repository, ENCODING);
         } catch (UnsupportedEncodingException e) {
             throw new IllegalArgumentException(e);
         }
@@ -43,25 +43,25 @@ public final class GitLabRepositoryAPI {
 
     @Nullable
     public GitLabCommit getCommit(@NotNull String sha1) throws IOException {
-        return gitLab.get(repositoryPath + COMMITS_PATH + '/' + sha1)
+        return gitLab.get(repositoryPath + '/' + COMMITS_PATH + '/' + sha1)
                 .withResultOf(GitLabCommit.class);
     }
 
     @Nullable
     public GitLabBranch getBranch(@NotNull String branchName) throws IOException {
-        return gitLab.get(repositoryPath + BRANCHES_PATH + '/' + branchName)
+        return gitLab.get(repositoryPath + '/' + BRANCHES_PATH + '/' + branchName)
                 .withResultOf(GitLabBranch.class);
     }
 
     @NotNull
     public List<GitLabBranch> branches() throws IOException {
-        final List<GitLabBranch> branches = gitLab.get(repositoryPath + BRANCHES_PATH).withResultOf(LIST_OF_BRANCHES);
+        final List<GitLabBranch> branches = gitLab.get(repositoryPath + '/' + BRANCHES_PATH).withResultOf(LIST_OF_BRANCHES);
         return branches == null ? Collections.<GitLabBranch>emptyList() : branches;
     }
 
     @Nullable
     public GitLabFile[] getCommitFiles(@NotNull String sha1) throws IOException {
-        return gitLab.get(repositoryPath + COMMITS_PATH + '/' + sha1 + '/' + DIFF_PATH)
+        return gitLab.get(repositoryPath + '/' + COMMITS_PATH + '/' + sha1 + '/' + DIFF_PATH)
                 .withResultOf(GitLabFile[].class);
     }
 }

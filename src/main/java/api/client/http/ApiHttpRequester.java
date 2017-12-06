@@ -16,8 +16,6 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Map;
 
-//import com.google.common.base.Function;
-
 public final class ApiHttpRequester {
     @NotNull
     private static final String ENCODING = "UTF-8";

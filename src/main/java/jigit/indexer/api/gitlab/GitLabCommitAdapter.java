@@ -75,7 +75,7 @@ public final class GitLabCommitAdapter implements CommitAdapter {
             throw apiExceptionHandler.handle(e);
         }
         if (commitDiffs == null) {
-            throw new IllegalStateException("Something goes wrong. Got null commit diff for sha1 = " + commitSha1);
+            throw new IllegalStateException("Something went wrong. Got null commit diff for sha1 = " + commitSha1);
         }
         final Collection<CommitFileAdapter> commitFileAdapters = new ArrayList<>();
         for (GitLabFile gitLabFile : commitDiffs) {

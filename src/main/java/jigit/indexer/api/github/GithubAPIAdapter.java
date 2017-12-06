@@ -29,7 +29,7 @@ public final class GithubAPIAdapter implements APIAdapter {
     public CommitAdapter getCommit(@NotNull String commitSha1) throws IOException {
         final GitHubCommit commit = repository.getCommit(commitSha1);
         if (commit == null) {
-            throw new IllegalStateException("Something goes wrong. Got null commit for sha1 = " + commitSha1);
+            throw new IllegalStateException("Something went wrong. Got null commit for sha1 = " + commitSha1);
         }
         final GithubCommitAdapter commitAdapter = new GithubCommitAdapter(commit);
         requestsCounter.increase();

@@ -100,8 +100,7 @@ final class IndexingWorker implements Callable<JigitRepo> {
 
         int counter = 0;
         while (!(commitQueue.isEmpty() || DisabledRepos.instance.disabled(repoName))) {
-            final long requestsQuantity = apiAdapter.getRequestsQuantity();
-            if (requestsQuantity > 0 && repo.getSleepRequests() > 0 && requestsQuantity % repo.getSleepRequests() == 0) {
+            if (isTimeToSleep(apiAdapter.getRequestsQuantity())) {
                 Thread.sleep(repo.getSleepTimeout());
             }
             counter++;
@@ -143,5 +142,9 @@ final class IndexingWorker implements Callable<JigitRepo> {
         if (DisabledRepos.instance.disabled(repoName)) {
             throw new InterruptedException("Indexing interrupted from the outside.");
         }
+    }
+
+    private boolean isTimeToSleep(long requestsQuantity) {
+        return requestsQuantity > 0 && repo.getSleepRequests() > 0 && requestsQuantity % repo.getSleepRequests() == 0;
     }
 }

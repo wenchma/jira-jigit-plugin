@@ -15,11 +15,11 @@ public final class GitHubRepositoryAPI {
     private static final @NotNull Type LIST_OF_BRANCHES = new TypeToken<List<GitHubBranch>>() {
     }.getType();
     @NotNull
-    private static final String REPOS_PATH = "/repos";
+    private static final String REPOS_PATH = "repos";
     @NotNull
-    private static final String COMMITS_PATH = "/commits";
+    private static final String COMMITS_PATH = "commits";
     @NotNull
-    private static final String BRANCHES_PATH = "/branches";
+    private static final String BRANCHES_PATH = "branches";
     @NotNull
     private final String repository;
     @NotNull
@@ -32,20 +32,20 @@ public final class GitHubRepositoryAPI {
 
     @Nullable
     public GitHubCommit getCommit(@NotNull String sha1) throws IOException {
-        return gitHub.get(REPOS_PATH + '/' + repository + COMMITS_PATH + '/' + sha1)
+        return gitHub.get('/' + REPOS_PATH + '/' + repository + '/' + COMMITS_PATH + '/' + sha1)
                 .withResultOf(GitHubCommit.class);
     }
 
     @Nullable
     public GitHubBranch getBranch(@NotNull String branchName) throws IOException {
-        return gitHub.get(REPOS_PATH + '/' + repository + BRANCHES_PATH + '/' + branchName)
+        return gitHub.get('/' + REPOS_PATH + '/' + repository + '/' + BRANCHES_PATH + '/' + branchName)
                 .withResultOf(GitHubBranch.class);
     }
 
     @NotNull
     public List<GitHubBranch> branches() throws IOException {
         final List<GitHubBranch> branches = gitHub
-                .get(REPOS_PATH + '/' + repository + BRANCHES_PATH)
+                .get('/' + REPOS_PATH + '/' + repository + '/' + BRANCHES_PATH)
                 .withResultOf(LIST_OF_BRANCHES);
         return branches == null ? Collections.<GitHubBranch>emptyList() : branches;
     }

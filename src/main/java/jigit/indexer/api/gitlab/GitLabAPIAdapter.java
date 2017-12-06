@@ -40,7 +40,7 @@ public final class GitLabAPIAdapter implements APIAdapter {
             throw apiExceptionHandler.handle(e);
         }
         if (commit == null) {
-            throw new IllegalStateException("Something goes wrong. Got null commit for sha1 = " + commitSha1);
+            throw new IllegalStateException("Something went wrong. Got null commit for sha1 = " + commitSha1);
         }
         return new GitLabCommitAdapter(commit, repositoryAPI, requestsCounter, apiExceptionHandler);
     }
