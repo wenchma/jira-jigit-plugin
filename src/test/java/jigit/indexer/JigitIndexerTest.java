@@ -24,10 +24,7 @@ import org.junit.rules.Timeout;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static java.util.Collections.singletonList;
@@ -37,15 +34,15 @@ import static org.mockito.Mockito.when;
 
 public final class JigitIndexerTest extends DBTester {
     @NotNull
-    @Rule
-    public final Timeout timeoutRule = new Timeout((int) TimeUnit.SECONDS.toMillis(30));
+    public static final TreeSet<String> BRANCHES = Sets.newTreeSet(Arrays.asList(APIAdaptedStub.BRANCH1, APIAdaptedStub.BRANCH2));
     @NotNull
     private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
     @NotNull
-    private final JigitRepo jigitRepo =
-            new JigitRepo(REPO_NAME, "url", "token", "repoId", APIAdaptedStub.MASTER, true, 1,
-                    (int) TimeUnit.SECONDS.toMillis(1), 2, false,
-                    Sets.newTreeSet(Arrays.asList(APIAdaptedStub.BRANCH1, APIAdaptedStub.BRANCH2)));
+    private static final JigitRepo JIGIT_REPO = new JigitRepo(REPO_NAME, "url", "token", "repoId",
+            APIAdaptedStub.MASTER, true, 1, (int) TimeUnit.SECONDS.toMillis(1), 2, false, BRANCHES);
+    @NotNull
+    @Rule
+    public final Timeout timeoutRule = new Timeout((int) TimeUnit.SECONDS.toMillis(30));
     @NotNull
     private final JigitSettingsManager jigitSettingsManager = mock(JigitSettingsManager.class);
     @NotNull
@@ -64,7 +61,7 @@ public final class JigitIndexerTest extends DBTester {
         final QueueItemManager queueItemManager = new QueueItemManagerImpl(getActiveObjects());
         when(jigitSettingsManager.getJigitRepos())
                 .thenReturn(new HashMap<String, JigitRepo>() {{
-                    put(jigitRepo.getRepoName(), jigitRepo);
+                    put(JIGIT_REPO.getRepoName(), JIGIT_REPO);
                 }});
         final CommitManager commitManager = getCommitManager();
         final TestAPIAdapterFactory apiAdapterFactory = new TestAPIAdapterFactory();
@@ -88,13 +85,30 @@ public final class JigitIndexerTest extends DBTester {
     }
 
     @Test
+    public void repoWithWrongBranchNameIndexed() {
+        final TreeSet<String> branches = new TreeSet<>(BRANCHES);
+        branches.add("a-branch");
+        final JigitRepo jigitRepoWithWrongBrachName = new JigitRepo(JIGIT_REPO.getRepoName(),
+                JIGIT_REPO.getServerUrl(), JIGIT_REPO.getToken(), JIGIT_REPO.getRepositoryId(),
+                JIGIT_REPO.getDefaultBranch(), JIGIT_REPO.isEnabled(), JIGIT_REPO.getRequestTimeout(),
+                JIGIT_REPO.getSleepTimeout(), JIGIT_REPO.getSleepRequests(),
+                JIGIT_REPO.isIndexAllBranches(), branches);
+        when(jigitSettingsManager.getJigitRepos())
+                .thenReturn(new HashMap<String, JigitRepo>() {{
+                    put(JIGIT_REPO.getRepoName(), jigitRepoWithWrongBrachName);
+                }});
+        jigitIndexer.execute();
+        allCommitsAreIndexed();
+    }
+
+    @Test
     public void repoIndexingStopsAfterDisabling() throws SQLException, ExecutionException, InterruptedException {
         final Future<Boolean> futureResult = executorService.submit(new Callable<Boolean>() {
             @NotNull
             @Override
             public Boolean call() {
                 try {
-                    Thread.sleep(jigitRepo.getSleepTimeout());
+                    Thread.sleep(JIGIT_REPO.getSleepTimeout());
                 } catch (InterruptedException ignored) {
                     fail();
                     return Boolean.FALSE;
@@ -124,10 +138,10 @@ public final class JigitIndexerTest extends DBTester {
             @Override
             public Boolean call() throws IOException {
                 try {
-                    Thread.sleep(jigitRepo.getSleepTimeout());
+                    Thread.sleep(JIGIT_REPO.getSleepTimeout());
                     final int commitsNumber = getEntityManager().count(Commit.class);
                     assertTrue("Actual number is " + commitsNumber, commitsNumber >= 1);
-                    repoDataCleaner.clearRepoData(jigitRepo);
+                    repoDataCleaner.clearRepoData(JIGIT_REPO);
                 } catch (InterruptedException | SQLException ignored) {
                     fail();
                     return Boolean.FALSE;

@@ -49,11 +49,10 @@ final class IndexingWorker implements Callable<JigitRepo> {
     @Override
     public JigitRepo call() throws IOException, InterruptedException, ParseException {
         try {
-            final Map<String, ForcePushHandler> branchFPHandlers = getBranchForcePushHandlers();
+            final Map<String, BranchIndexingMode> branchFPHandlers = getBranchIndexingModes();
             final String repositoryId = repo.getRepositoryId();
-            for (Map.Entry<String, ForcePushHandler> entry : branchFPHandlers.entrySet()) {
-                entry.getValue().handle(repo, entry.getKey());
-                indexRepoBranch(repositoryId, entry.getKey());
+            for (Map.Entry<String, BranchIndexingMode> entry : branchFPHandlers.entrySet()) {
+                handleBranchMode(entry.getValue(), repositoryId, entry.getKey());
             }
         } catch (LimitExceededException ignored) {
             LOG.warn("Repository request limit exceeded for " + repo.getRepoName()
@@ -63,7 +62,23 @@ final class IndexingWorker implements Callable<JigitRepo> {
         return repo;
     }
 
-    private void indexRepoBranch(@NotNull String repositoryId, @NotNull String branch) throws IOException, InterruptedException, ParseException {
+    private void handleBranchMode(@NotNull BranchIndexingMode indexingMode,
+                                  @NotNull String repositoryId,
+                                  @NotNull String branch) throws IOException, InterruptedException, ParseException {
+        try {
+            indexingMode.getForcePushHandler().handle(repo, branch);
+            indexRepoBranch(repositoryId, branch);
+        } catch (IOException e) {
+            if (indexingMode.isStopIndexingOnException()) {
+                throw e;
+            } else {
+                LOG.error("Got an error while indexing repository " + repositoryId + " and branch " + branch, e);
+            }
+        }
+    }
+
+    private void indexRepoBranch(@NotNull String repositoryId,
+                                 @NotNull String branch) throws IOException, InterruptedException, ParseException {
         try {
             final String startCommitSha1 = apiAdapter.getHeadCommitSha1(branch);
             if (startCommitSha1 == null) {
@@ -81,12 +96,12 @@ final class IndexingWorker implements Callable<JigitRepo> {
     }
 
     @NotNull
-    private Map<String, ForcePushHandler> getBranchForcePushHandlers() throws IOException {
-        final Map<String, ForcePushHandler> branchHandlers = new LinkedHashMap<>();
-        branchHandlers.put(repo.getDefaultBranch(), ForcePushHandler.DO_NOTHING);
+    private Map<String, BranchIndexingMode> getBranchIndexingModes() throws IOException {
+        final Map<String, BranchIndexingMode> branchHandlers = new LinkedHashMap<>();
+        branchHandlers.put(repo.getDefaultBranch(), new BranchIndexingMode(true, ForcePushHandler.DO_NOTHING));
         final SortedSet<String> branches = BranchesStrategyFactory.buildBranchesStrategy(repo, apiAdapter).branches();
         for (String branch : branches) {
-            branchHandlers.put(branch, deletingForcePushHandler);
+            branchHandlers.put(branch, new BranchIndexingMode(false, deletingForcePushHandler));
         }
         return branchHandlers;
     }

@@ -1,8 +1,8 @@
 package jigit.indexer.api;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
@@ -57,18 +57,19 @@ public final class APIAdaptedStub implements APIAdapter {
         return commits.get(commitSha1);
     }
 
-    @Nullable
+    @NotNull
     @Override
-    public String getHeadCommitSha1(@NotNull String branch) {
+    public String getHeadCommitSha1(@NotNull String branch) throws IOException {
         requestsCounter.increase();
-        if (MASTER.equals(branch)) {
-            return commit4.getCommitSha1();
-        } else if (BRANCH1.equals(branch)) {
-            return commit3.getCommitSha1();
-        } else if (BRANCH2.equals(branch)) {
-            return commit5.getCommitSha1();
+        switch (branch) {
+            case MASTER:
+                return commit4.getCommitSha1();
+            case BRANCH1:
+                return commit3.getCommitSha1();
+            case BRANCH2:
+                return commit5.getCommitSha1();
         }
-        return null;
+        throw new IOException("Invalid branch name " + branch);
     }
 
     @Override
