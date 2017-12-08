@@ -108,8 +108,8 @@ public final class CommitManagerImpl implements CommitManager {
 
         final Commit[] commits = ao.find(Commit.class, Query.
                 select().
-                alias(Commit.class, "commit").alias(CommitIssue.class, "commit_issue").
-                join(CommitIssue.class, "commit.ID = commit_issue.COMMIT_ID").
+                alias(Commit.class, "commits").alias(CommitIssue.class, "commit_issue").
+                join(CommitIssue.class, "commits.ID = commit_issue.COMMIT_ID").
                 where("commit_issue.ISSUE_KEY IN (" + issueKeysPlaceholder + ")", issueKeys.toArray())
         );
 
