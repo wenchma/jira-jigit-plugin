@@ -1,14 +1,21 @@
 package jigit.ao;
 
 import jigit.DBTester;
+import jigit.client.github.dto.GitHubAuthor;
+import jigit.client.github.dto.GitHubCommit;
 import jigit.entities.Commit;
 import jigit.entities.CommitDiff;
 import jigit.entities.CommitIssue;
+import jigit.indexer.api.CommitFileAdapter;
+import jigit.indexer.api.github.GithubCommitAdapter;
+import jigit.indexer.api.github.GithubCommitFileAdapter;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,7 +24,6 @@ import static org.junit.Assert.assertEquals;
 
 
 public final class CommitManagerTest extends DBTester {
-
     @Test
     public void readCommits() throws ParseException {
         final String issueKey1 = "KEY-11";
@@ -79,4 +85,23 @@ public final class CommitManagerTest extends DBTester {
         assertEquals(0, getEntityManager().count(CommitIssue.class));
         assertEquals(0, getEntityManager().count(CommitDiff.class));
     }
+
+
+    private void createCommitStuff(@NotNull String branch, @NotNull List<String> issueKeys) throws ParseException {
+        final String sha1 = UUID.randomUUID().toString();
+        createCommitStuff(sha1, branch, issueKeys, "Commit message for sha=" + sha1);
+    }
+
+    private void createCommitStuff(@NotNull String sha1, @NotNull String branch,
+                                   @NotNull List<String> issueKeys, @NotNull String message) throws ParseException {
+        final GitHubCommit.CommitInfo commitInfo = new GitHubCommit.CommitInfo(
+                new GitHubAuthor("me", "2016/01/02 12:00:00 UTC"), message);
+        final GitHubCommit gitHubCommit = new GitHubCommit(sha1, commitInfo,
+                Collections.<GitHubCommit.ParentCommit>emptyList(), Collections.<GitHubCommit.File>emptyList());
+        final GitHubCommit.File gitHubFile = new GitHubCommit.File("changed", "MyClass.java", "MyClass.java");
+        final CommitFileAdapter githubCommitFileAdapter = new GithubCommitFileAdapter(gitHubFile);
+        getCommitManager().persist(new GithubCommitAdapter(gitHubCommit), GROUP_NAME, REPO_NAME, branch, issueKeys,
+                singletonList(githubCommitFileAdapter));
+    }
+
 }

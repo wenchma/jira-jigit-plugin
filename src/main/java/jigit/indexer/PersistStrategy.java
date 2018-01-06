@@ -3,6 +3,7 @@ package jigit.indexer;
 import jigit.indexer.api.CommitAdapter;
 import jigit.indexer.api.CommitFileAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
 import java.util.Collection;
@@ -13,7 +14,8 @@ public interface PersistStrategy {
     PersistStrategy DO_NOTHING = new PersistStrategy() {
         @NotNull
         @Override
-        public Collection<String> persist(@NotNull String repoName,
+        public Collection<String> persist(@Nullable String repoGroupName,
+                                          @NotNull String repoName,
                                           @NotNull String branch,
                                           @NotNull CommitAdapter commitAdapter,
                                           @NotNull Collection<String> issueKeys,
@@ -23,7 +25,8 @@ public interface PersistStrategy {
     };
 
     @NotNull
-    Collection<String> persist(@NotNull String repoName,
+    Collection<String> persist(@Nullable String repoGroupName,
+                               @NotNull String repoName,
                                @NotNull String branch,
                                @NotNull CommitAdapter commitAdapter,
                                @NotNull Collection<String> issueKeys,

@@ -12,7 +12,9 @@ import jigit.entities.QueueItem;
 import jigit.indexer.api.APIAdaptedStub;
 import jigit.indexer.api.CommitAdapter;
 import jigit.indexer.api.CommitFileAdapter;
-import jigit.indexer.api.TestAPIAdapterFactory;
+import jigit.indexer.api.TestRepoInfoFactory;
+import jigit.indexer.repository.RepoInfo;
+import jigit.indexer.repository.RepoType;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +40,12 @@ public final class JigitIndexerTest extends DBTester {
     @NotNull
     private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
     @NotNull
-    private static final JigitRepo JIGIT_REPO = new JigitRepo(REPO_NAME, "url", "token", "repoId",
+    private static final JigitRepo SINGLE_JIGIT_REPO = new JigitRepo(REPO_NAME, "url", "token",
+            RepoType.SingleRepository, "repoId",
+            APIAdaptedStub.MASTER, true, 1, (int) TimeUnit.SECONDS.toMillis(1), 2, false, BRANCHES);
+    @NotNull
+    private static final JigitRepo GROUP_JIGIT_REPO = new JigitRepo(GROUP_NAME, "url", "token",
+            RepoType.GroupOfRepositories, GROUP_NAME,
             APIAdaptedStub.MASTER, true, 1, (int) TimeUnit.SECONDS.toMillis(1), 2, false, BRANCHES);
     @NotNull
     @Rule
@@ -53,24 +60,29 @@ public final class JigitIndexerTest extends DBTester {
     @SuppressWarnings("NullableProblems")
     @NotNull
     private RepoDataCleaner repoDataCleaner;
+    @SuppressWarnings("NullableProblems")
+    @NotNull
+    private RepoInfo singleRepoInfo;
+    @SuppressWarnings("NullableProblems")
+    @NotNull
+    private RepoInfo groupRepoInfo;
 
     @Override
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
         super.setUp();
         final QueueItemManager queueItemManager = new QueueItemManagerImpl(getActiveObjects());
-        when(jigitSettingsManager.getJigitRepos())
-                .thenReturn(new HashMap<String, JigitRepo>() {{
-                    put(JIGIT_REPO.getRepoName(), JIGIT_REPO);
-                }});
         final CommitManager commitManager = getCommitManager();
-        final TestAPIAdapterFactory apiAdapterFactory = new TestAPIAdapterFactory();
-        repoDataCleaner = new RepoDataCleaner(apiAdapterFactory, commitManager, queueItemManager);
-        final IndexingWorkerFactory indexingWorkerFactory = new IndexingWorkerFactoryImpl(apiAdapterFactory,
+        final TestRepoInfoFactory repoInfoFactory = new TestRepoInfoFactory();
+        singleRepoInfo = repoInfoFactory.build(SINGLE_JIGIT_REPO).iterator().next();
+        groupRepoInfo = repoInfoFactory.build(GROUP_JIGIT_REPO).iterator().next();
+        repoDataCleaner = new RepoDataCleaner(commitManager, queueItemManager);
+        final IndexingWorkerFactory indexingWorkerFactory = new IndexingWorkerFactoryImpl(repoInfoFactory,
                 queueItemManager, new PersistStrategyFactoryImpl(commitManager), commitManager,
                 repoDataCleaner, issueKeysExtractor);
         jigitIndexer = new JigitIndexer(jigitSettingsManager, indexingWorkerFactory);
-        DisabledRepos.instance.markEnabled(REPO_NAME);
+        DisabledRepos.instance.markEnabled(singleRepoInfo.getRepoName());
+        DisabledRepos.instance.markEnabled(groupRepoInfo.getRepoName());
     }
 
     @AfterClass
@@ -79,26 +91,29 @@ public final class JigitIndexerTest extends DBTester {
     }
 
     @Test
-    public void repoIndexed() {
-        jigitIndexer.execute();
-        allCommitsAreIndexed();
+    public void singleRepoIndexed() {
+        indexRepo(SINGLE_JIGIT_REPO);
+        allCommitsAreIndexed(singleRepoInfo);
+    }
+
+    @Test
+    public void groupRepoIndexed() {
+        indexRepo(GROUP_JIGIT_REPO);
+        allCommitsAreIndexed(groupRepoInfo);
     }
 
     @Test
     public void repoWithWrongBranchNameIndexed() {
         final TreeSet<String> branches = new TreeSet<>(BRANCHES);
         branches.add("a-branch");
-        final JigitRepo jigitRepoWithWrongBrachName = new JigitRepo(JIGIT_REPO.getRepoName(),
-                JIGIT_REPO.getServerUrl(), JIGIT_REPO.getToken(), JIGIT_REPO.getRepositoryId(),
-                JIGIT_REPO.getDefaultBranch(), JIGIT_REPO.isEnabled(), JIGIT_REPO.getRequestTimeout(),
-                JIGIT_REPO.getSleepTimeout(), JIGIT_REPO.getSleepRequests(),
-                JIGIT_REPO.isIndexAllBranches(), branches);
-        when(jigitSettingsManager.getJigitRepos())
-                .thenReturn(new HashMap<String, JigitRepo>() {{
-                    put(JIGIT_REPO.getRepoName(), jigitRepoWithWrongBrachName);
-                }});
-        jigitIndexer.execute();
-        allCommitsAreIndexed();
+        final JigitRepo jigitRepoWithWrongBrachName = new JigitRepo(SINGLE_JIGIT_REPO.getRepoName(),
+                SINGLE_JIGIT_REPO.getServerUrl(), SINGLE_JIGIT_REPO.getToken(),
+                SINGLE_JIGIT_REPO.getRepoType(), SINGLE_JIGIT_REPO.getRepositoryId(),
+                SINGLE_JIGIT_REPO.getDefaultBranch(), SINGLE_JIGIT_REPO.isEnabled(), SINGLE_JIGIT_REPO.getRequestTimeout(),
+                SINGLE_JIGIT_REPO.getSleepTimeout(), SINGLE_JIGIT_REPO.getSleepRequests(),
+                SINGLE_JIGIT_REPO.isIndexAllBranches(), branches);
+        indexRepo(jigitRepoWithWrongBrachName);
+        allCommitsAreIndexed(singleRepoInfo);
     }
 
     @Test
@@ -108,40 +123,51 @@ public final class JigitIndexerTest extends DBTester {
             @Override
             public Boolean call() {
                 try {
-                    Thread.sleep(JIGIT_REPO.getSleepTimeout());
+                    Thread.sleep(singleRepoInfo.getSleepTimeout());
                 } catch (InterruptedException ignored) {
                     fail();
                     return Boolean.FALSE;
                 }
-                DisabledRepos.instance.markDisabled(REPO_NAME);
+                DisabledRepos.instance.markDisabled(singleRepoInfo.getRepoName());
                 return Boolean.TRUE;
             }
         });
-        jigitIndexer.execute();
+        indexRepo(SINGLE_JIGIT_REPO);
         assertTrue(futureResult.get());
-        assertTrue(DisabledRepos.instance.disabled(REPO_NAME));
+        assertTrue(DisabledRepos.instance.disabled(singleRepoInfo.getRepoName()));
         final int commitsNumber = getEntityManager().count(Commit.class);
         assertTrue("Actual number is " + commitsNumber, commitsNumber < 5);
         assertTrue("Actual number is " + commitsNumber, commitsNumber >= 1);
 
         final List<Commit> commits4 =
                 getCommitManager().getCommits(singletonList(APIAdaptedStub.commit4.getCommitSha1()));
-        final Commit commit = assertCommits(commits4, APIAdaptedStub.MASTER);
+        final Commit commit = assertCommits(singleRepoInfo, commits4, APIAdaptedStub.MASTER);
         assertCommit(commit, APIAdaptedStub.commit4);
     }
 
 
     @Test
-    public void noRepoDataAfterCleaning() throws SQLException, ExecutionException, InterruptedException {
+    public void noRepoDataAfterCleaningSingleRepository() throws SQLException, ExecutionException, InterruptedException {
+        noRepoDataAfterCleaning(SINGLE_JIGIT_REPO, singleRepoInfo);
+    }
+
+    @Test
+    public void noRepoDataAfterCleaningGroupOfRepositories() throws SQLException, ExecutionException, InterruptedException {
+        noRepoDataAfterCleaning(GROUP_JIGIT_REPO, groupRepoInfo);
+    }
+
+    private void noRepoDataAfterCleaning(final @NotNull JigitRepo jigitRepo,
+                                         final @NotNull RepoInfo repoInfo) throws SQLException, ExecutionException, InterruptedException {
+        indexRepo(jigitRepo);
         final Future<Boolean> futureResult = executorService.submit(new Callable<Boolean>() {
             @NotNull
             @Override
-            public Boolean call() throws IOException {
+            public Boolean call() {
                 try {
-                    Thread.sleep(JIGIT_REPO.getSleepTimeout());
+                    Thread.sleep(repoInfo.getSleepTimeout());
                     final int commitsNumber = getEntityManager().count(Commit.class);
                     assertTrue("Actual number is " + commitsNumber, commitsNumber >= 1);
-                    repoDataCleaner.clearRepoData(JIGIT_REPO);
+                    repoDataCleaner.clearRepoData(Collections.singletonList(repoInfo));
                 } catch (InterruptedException | SQLException ignored) {
                     fail();
                     return Boolean.FALSE;
@@ -149,46 +175,50 @@ public final class JigitIndexerTest extends DBTester {
                 return Boolean.TRUE;
             }
         });
-        jigitIndexer.execute();
         assertTrue(futureResult.get());
-        assertFalse(DisabledRepos.instance.disabled(REPO_NAME));
+        assertFalse(DisabledRepos.instance.disabled(repoInfo.getRepoName()));
         assertEquals(0, getEntityManager().count(Commit.class));
         assertEquals(0, getEntityManager().count(QueueItem.class));
     }
 
-    private void allCommitsAreIndexed() {
+    private void allCommitsAreIndexed(@NotNull RepoInfo repoInfo) {
         final List<Commit> commits1 =
                 getCommitManager().getCommits(singletonList(APIAdaptedStub.commit1.getCommitSha1()));
-        final Commit commit = assertCommits(commits1, APIAdaptedStub.MASTER);
+        final Commit commit = assertCommits(repoInfo, commits1, APIAdaptedStub.MASTER);
         assertCommit(commit, APIAdaptedStub.commit1);
 
         final List<Commit> commits2 =
                 getCommitManager().getCommits(singletonList(APIAdaptedStub.commit2.getCommitSha1()));
-        final Commit commit2 = assertCommits(commits2, APIAdaptedStub.MASTER);
+        final Commit commit2 = assertCommits(repoInfo, commits2, APIAdaptedStub.MASTER);
         assertCommit(commit2, APIAdaptedStub.commit2);
 
         final List<Commit> commits3 =
                 getCommitManager().getCommits(singletonList(APIAdaptedStub.commit3.getCommitSha1()));
-        final Commit commit3 = assertCommits(commits3, APIAdaptedStub.MASTER);
+        final Commit commit3 = assertCommits(repoInfo, commits3, APIAdaptedStub.MASTER);
         assertCommit(commit3, APIAdaptedStub.commit3);
 
         final List<Commit> commits4 =
                 getCommitManager().getCommits(singletonList(APIAdaptedStub.commit4.getCommitSha1()));
-        final Commit commit4 = assertCommits(commits4, APIAdaptedStub.MASTER);
+        final Commit commit4 = assertCommits(repoInfo, commits4, APIAdaptedStub.MASTER);
         assertCommit(commit4, APIAdaptedStub.commit4);
 
         final List<Commit> commits5 =
                 getCommitManager().getCommits(singletonList(APIAdaptedStub.commit5.getCommitSha1()));
-        final Commit commit5 = assertCommits(commits5, APIAdaptedStub.BRANCH2);
+        final Commit commit5 = assertCommits(repoInfo, commits5, APIAdaptedStub.BRANCH2);
         assertCommit(commit5, APIAdaptedStub.commit5);
     }
 
     @NotNull
-    private Commit assertCommits(@NotNull List<Commit> commits, @NotNull String branchName) {
+    private Commit assertCommits(@NotNull RepoInfo repoInfo, @NotNull List<Commit> commits, @NotNull String branchName) {
         assertEquals(1, commits.size());
         final Commit commit = commits.get(0);
-        assertEquals(REPO_NAME, commit.getRepoName());
+        assertEquals(repoInfo.getRepoName(), commit.getRepoName());
         assertEquals(branchName, commit.getBranch());
+        if (repoInfo.getRepoGroup() == null) {
+            assertNull(commit.getRepoGroup());
+        } else {
+            assertEquals(repoInfo.getRepoGroup(), commit.getRepoGroup());
+        }
         return commit;
     }
 
@@ -222,5 +252,13 @@ public final class JigitIndexerTest extends DBTester {
         for (CommitIssue commitIssue : commitIssues) {
             assertTrue(issueKeys.contains(commitIssue.getIssueKey()));
         }
+    }
+
+    private void indexRepo(final @NotNull JigitRepo jigitRepo) {
+        when(jigitSettingsManager.getJigitRepos())
+                .thenReturn(new HashMap<String, JigitRepo>() {{
+                    put(jigitRepo.getRepoName(), jigitRepo);
+                }});
+        jigitIndexer.execute();
     }
 }

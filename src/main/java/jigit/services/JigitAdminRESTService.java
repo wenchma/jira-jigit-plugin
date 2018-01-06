@@ -7,7 +7,9 @@ import com.atlassian.jira.user.ApplicationUser;
 import com.atlassian.jira.util.I18nHelper;
 import jigit.indexer.DisabledRepos;
 import jigit.indexer.RepoDataCleaner;
-import jigit.indexer.api.APIAdapterFactory;
+import jigit.indexer.repository.RepoInfo;
+import jigit.indexer.repository.RepoInfoFactory;
+import jigit.indexer.repository.RepoType;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +23,7 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 @Path("/")
@@ -40,20 +43,20 @@ public final class JigitAdminRESTService {
     @Context
     private HttpServletRequest request;
     @NotNull
-    private final APIAdapterFactory apiAdapterFactory;
+    private final RepoInfoFactory repoInfoFactory;
     @NotNull
     private final RepoDataCleaner repoDataCleaner;
 
     public JigitAdminRESTService(@NotNull JiraAuthenticationContext authCtx,
                                  @NotNull PermissionManager permissionManager,
                                  @NotNull JigitSettingsManager settingsManager,
-                                 @NotNull APIAdapterFactory apiAdapterFactory,
+                                 @NotNull RepoInfoFactory repoInfoFactory,
                                  @NotNull RepoDataCleaner repoDataCleaner) {
         this.authCtx = authCtx;
         this.permissionManager = permissionManager;
         this.i18n = authCtx.getI18nHelper();
         this.settingsManager = settingsManager;
-        this.apiAdapterFactory = apiAdapterFactory;
+        this.repoInfoFactory = repoInfoFactory;
         this.repoDataCleaner = repoDataCleaner;
     }
 
@@ -64,6 +67,7 @@ public final class JigitAdminRESTService {
     public Response addRepo(@NotNull @FormParam("repo_name") @DefaultValue("") String repoName,
                             @NotNull @FormParam("url") @DefaultValue("") String url,
                             @NotNull @FormParam("token") @DefaultValue("") String token,
+                            @Nullable @FormParam("repo_type") RepoType repoType,
                             @NotNull @FormParam("repository_id") @DefaultValue("") String repositoryId,
                             @NotNull @FormParam("def_branch") @DefaultValue("") String branch,
                             @NotNull @FormParam("request_timeout") @DefaultValue("10") Integer requestTimeout,
@@ -74,7 +78,7 @@ public final class JigitAdminRESTService {
         if (response != null) {
             return response;
         }
-        if (repoName.isEmpty() || url.isEmpty() || token.isEmpty() || repositoryId.isEmpty() || branch.isEmpty()) {
+        if (repoType == null || repoName.isEmpty() || url.isEmpty() || token.isEmpty() || repositoryId.isEmpty() || branch.isEmpty()) {
             return Response.ok(i18n.getText("jigit.error.params.empty")).status(Response.Status.BAD_REQUEST).build();
         }
         final JigitRepo existedJigitRepo = settingsManager.getJigitRepo(repoName);
@@ -82,7 +86,8 @@ public final class JigitAdminRESTService {
             return Response.ok(i18n.getText("jigit.error.params.repo.exists", repoName)).status(Response.Status.BAD_REQUEST).build();
         }
 
-        final JigitRepo jigitRepo = new JigitRepo(repoName.trim(), url.trim(), token, repositoryId.trim(),
+        final JigitRepo jigitRepo = new JigitRepo(repoName.trim(), url.trim(), token,
+                repoType, repositoryId.trim(),
                 branch.trim(), true, (int) TIME_UNIT.toMillis(requestTimeout),
                 (int) TIME_UNIT.toMillis(sleepTimeout), sleepRequests, indexAllBranches);
 
@@ -99,6 +104,7 @@ public final class JigitAdminRESTService {
                              @NotNull @FormParam("url") @DefaultValue("") String url,
                              @NotNull @FormParam("token") @DefaultValue("") String token,
                              @NotNull @FormParam("change_token") @DefaultValue("") HtmlCheckbox changeToken,
+                             @Nullable @FormParam("repo_type") RepoType repoType,
                              @NotNull @FormParam("repository_id") @DefaultValue("") String repositoryId,
                              @NotNull @FormParam("def_branch") @DefaultValue("") String branch,
                              @NotNull @FormParam("request_timeout") @DefaultValue("10") Integer requestTimeout) {
@@ -106,24 +112,30 @@ public final class JigitAdminRESTService {
         if (response != null) {
             return response;
         }
-        if (repoName.isEmpty() || url.isEmpty() || repositoryId.isEmpty() || branch.isEmpty()) {
+        if (repoType == null || repoName.isEmpty() || url.isEmpty() || repositoryId.isEmpty() || branch.isEmpty()) {
             return Response.ok(i18n.getText("jigit.error.params.empty")).status(Response.Status.BAD_REQUEST).build();
         }
 
         final JigitRepo existedJigitRepo = settingsManager.getJigitRepo(repoName);
         final JigitRepo jigitRepo;
         if (changeToken.isChecked() || existedJigitRepo == null) {
-            jigitRepo = new JigitRepo(repoName, url.trim(), token, repositoryId.trim(),
+            jigitRepo = new JigitRepo(repoName, url.trim(), token, repoType, repositoryId.trim(),
                     branch.trim(), true, (int) TIME_UNIT.toMillis(requestTimeout),
                     (int) TIME_UNIT.toMillis(0), 0, false);
         } else {
-            jigitRepo = new JigitRepo(repoName, url.trim(), existedJigitRepo.getToken(), repositoryId.trim(),
+            jigitRepo = new JigitRepo(repoName, url.trim(), existedJigitRepo.getToken(),
+                    existedJigitRepo.getRepoType(), repositoryId.trim(),
                     branch.trim(), true, (int) TIME_UNIT.toMillis(requestTimeout),
                     (int) TIME_UNIT.toMillis(0), 0, false);
         }
 
         try {
-            apiAdapterFactory.getAPIAdapter(jigitRepo).getHeadCommitSha1(jigitRepo.getDefaultBranch());
+            final Collection<RepoInfo> repoInfos = repoInfoFactory.build(jigitRepo);
+            if (repoInfos.isEmpty()) {
+                Response.ok("No repositories found for path '" + repositoryId + "'").status(Response.Status.BAD_REQUEST).build();
+            }
+            final RepoInfo repoInfo = repoInfos.iterator().next();
+            repoInfo.getApiAdapter().getHeadCommitSha1(repoInfo.getDefaultBranch());
         } catch (IOException e) {
             return Response.ok(e.getMessage()).status(Response.Status.BAD_REQUEST).build();
         }
@@ -159,7 +171,8 @@ public final class JigitAdminRESTService {
         }
 
         final String newToken = changeToken.isChecked() ? token : jigitRepo.getToken();
-        final JigitRepo newRepo = new JigitRepo(repoName.trim(), url.trim(), newToken, repositoryId.trim(),
+        final JigitRepo newRepo = new JigitRepo(repoName.trim(), url.trim(), newToken,
+                jigitRepo.getRepoType(), repositoryId.trim(),
                 branch.trim(), jigitRepo.isEnabled(), (int) TIME_UNIT.toMillis(requestTimeout),
                 (int) TIME_UNIT.toMillis(sleepTimeout), sleepRequest, indexAllBranches);
         newRepo.addBranches(jigitRepo.getBranches());
@@ -203,7 +216,7 @@ public final class JigitAdminRESTService {
         if (jigitRepo == null) {
             return Response.noContent().status(Response.Status.NOT_FOUND).build();
         }
-        repoDataCleaner.clearRepoData(jigitRepo);
+        repoDataCleaner.clearRepoData(repoInfoFactory.build(jigitRepo));
 
         return getReferrerResponse(request);
     }
@@ -227,7 +240,7 @@ public final class JigitAdminRESTService {
         }
 
         final JigitRepo newRepo = new JigitRepo(jigitRepo.getRepoName(), jigitRepo.getServerUrl(),
-                jigitRepo.getToken(), jigitRepo.getRepositoryId(),
+                jigitRepo.getToken(), jigitRepo.getRepoType(), jigitRepo.getRepositoryId(),
                 jigitRepo.getDefaultBranch(), enabled, jigitRepo.getRequestTimeout(),
                 jigitRepo.getSleepTimeout(), jigitRepo.getSleepRequests(), jigitRepo.isIndexAllBranches());
         newRepo.addBranches(jigitRepo.getBranches());

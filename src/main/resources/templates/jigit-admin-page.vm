@@ -58,31 +58,41 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
                 <td data-val="$jigitRepo.getRepositoryId()" data-name="repository_id">
                     #set($repoId = $jigitRepo.getRepositoryId())
                     <a href="${jigitRepo.getServerUrl()}/${repoId}">$repoId</a>
+                    <div data-val="$jigitRepo.getRepoType().name()" data-name="repo_type"><i>$i18n.getText(
+                        'jigit.settings.table.columns.repo.type'): $i18n.getText(
+                        "$jigitRepo.getRepoType().getDisplayName()")</i></div>
                 </td>
                 <td data-val="$jigitRepo.getDefaultBranch()" data-name="def_branch" style="text-align: left;">
                     <table class="branch-list" cellpadding="0" cellspacing="0">
                         <tbody>
-                        <tr>
-                            <td>
-                                <table class="branches">
-                                    <tr>
-                                        <td>
-                                            $jigitRepo.getDefaultBranch()
-                                            <span class="aui-badge" title="Commits">
-                                                $action.getCommitCount($jigitRepo.getRepoName(), $jigitRepo.getDefaultBranch())
+                            #if($action.singleRepoType() == $jigitRepo.getRepoType())
+                            <tr>
+                                <td>
+                                    <table class="branches">
+                                        <tr>
+                                            <td>
+                                                $jigitRepo.getDefaultBranch()
+                                                <span class="aui-badge" title="Commits number">
+                                                    $action.getCommitCount($jigitRepo.getRepoName(), $jigitRepo.getDefaultBranch())
                                             </span>
-                                        </td>
-                                        <td>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </td>
+                                            </td>
+                                            <td>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            #end
                         </tr>
                             #if($jigitRepo.isIndexAllBranches())
                             <tr>
                                 <td data-val="true" data-name="index_all_branches"
-                                    style="text-align: left;font-style: italic;">
-                                    Index all branches
+                                    style="text-align: left;">
+                                    <i>Index all branches</i>
+                                    #if($action.singleRepoType() != $jigitRepo.getRepoType())
+                                        <span class="aui-badge" title="Commits number">
+                                            $action.getCommitCount($jigitRepo.getRepoName())
+                                        </span>
+                                    #end
                                 </td>
                             </tr>
                             #else
@@ -93,7 +103,7 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
                                             <tr>
                                                 <td>
                                                     $branch
-                                                    <span class="aui-badge" title="Commits">
+                                                    <span class="aui-badge" title="Commits number">
                                                         $action.getCommitCount($jigitRepo.getRepoName(), $branch)
                                         </span>
                                                 </td>
@@ -226,6 +236,12 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.jigit.project")</label>
                 <input type="text" name="repository_id" class="text form-data" placeholder="my_repository"/>
+                <select name="repo_type" class="select form-data" style="width: auto;">
+                    #foreach($repoType in $action.repoTypes())
+                        <option value="$repoType.name()" #if($action.singleRepoType() == $repoType)
+                                data-single-repo="true" #end>$i18n.getText("$repoType.getDisplayName()")</option>
+                    #end
+                </select>
             </div>
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.default.branch")</label>
@@ -279,6 +295,12 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.jigit.project")</label>
                 <input type="text" name="repository_id" class="text form-data"/>
+                <select disabled name="repo_type" class="select form-data" style="width: auto;">
+                    #foreach($repoType in $action.repoTypes())
+                        <option value="$repoType.name()" #if($action.singleRepoType() == $repoType)
+                                data-single-repo="true" #end>$i18n.getText("$repoType.getDisplayName()")</option>
+                    #end
+                </select>
             </div>
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.default.branch")</label>

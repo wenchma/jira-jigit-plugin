@@ -1,5 +1,6 @@
-package jigit.indexer;
+package jigit.indexer.branch;
 
+import jigit.indexer.ForcePushHandler;
 import org.jetbrains.annotations.NotNull;
 
 public final class BranchIndexingMode {

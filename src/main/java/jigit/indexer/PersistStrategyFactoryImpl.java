@@ -4,6 +4,7 @@ import jigit.ao.CommitManager;
 import jigit.indexer.api.CommitAdapter;
 import jigit.indexer.api.CommitFileAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
 import java.util.Collection;
@@ -40,12 +41,13 @@ public final class PersistStrategyFactoryImpl implements PersistStrategyFactory 
     private final class PersistAllDataStrategy implements PersistStrategy {
         @NotNull
         @Override
-        public Collection<String> persist(@NotNull String repoName,
+        public Collection<String> persist(@Nullable String repoGroupName,
+                                          @NotNull String repoName,
                                           @NotNull String branch,
                                           @NotNull CommitAdapter commitAdapter,
                                           @NotNull Collection<String> issueKeys,
                                           @NotNull Collection<CommitFileAdapter> commitFileAdapters) throws ParseException {
-            commitManager.persist(commitAdapter, repoName, branch, issueKeys, commitFileAdapters);
+            commitManager.persist(commitAdapter, repoGroupName, repoName, branch, issueKeys, commitFileAdapters);
             return commitAdapter.getParentSha1s();
         }
     }
@@ -54,7 +56,8 @@ public final class PersistStrategyFactoryImpl implements PersistStrategyFactory 
     private final class PersistDependentDataOnlyStrategy implements PersistStrategy {
         @NotNull
         @Override
-        public Collection<String> persist(@NotNull String repoName,
+        public Collection<String> persist(@Nullable String repoGroupName,
+                                          @NotNull String repoName,
                                           @NotNull String branch,
                                           @NotNull CommitAdapter commitAdapter,
                                           @NotNull Collection<String> issueKeys,

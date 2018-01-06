@@ -79,7 +79,7 @@
 
     <component key="jigit-persist-strategy-factory" class="jigit.indexer.PersistStrategyFactoryImpl"/>
 
-    <component key="jigit-api-adapter-factory" class="jigit.indexer.api.APIAdapterFactoryImpl"/>
+    <component key="jigit-api-repo-info-factory" class="jigit.indexer.repository.RepoInfoFactoryImpl"/>
 
     <component key="jigit-date-formatter" class="jigit.common.JigitDateFormatter"/>
 

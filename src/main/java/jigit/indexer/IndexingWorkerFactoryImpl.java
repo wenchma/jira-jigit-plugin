@@ -2,14 +2,18 @@ package jigit.indexer;
 
 import jigit.ao.CommitManager;
 import jigit.ao.QueueItemManager;
-import jigit.indexer.api.APIAdapter;
-import jigit.indexer.api.APIAdapterFactory;
+import jigit.indexer.repository.RepoInfo;
+import jigit.indexer.repository.RepoInfoFactory;
 import jigit.settings.JigitRepo;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+
 public final class IndexingWorkerFactoryImpl implements IndexingWorkerFactory {
     @NotNull
-    private final APIAdapterFactory apiAdapterFactory;
+    private final RepoInfoFactory repoInfoFactory;
     @NotNull
     private final QueueItemManager queueItemManager;
     @NotNull
@@ -21,13 +25,13 @@ public final class IndexingWorkerFactoryImpl implements IndexingWorkerFactory {
     @NotNull
     private final IssueKeysExtractor issueKeysExtractor;
 
-    public IndexingWorkerFactoryImpl(@NotNull APIAdapterFactory apiAdapterFactory,
+    public IndexingWorkerFactoryImpl(@NotNull RepoInfoFactory repoInfoFactory,
                                      @NotNull QueueItemManager queueItemManager,
                                      @NotNull PersistStrategyFactory persistStrategyFactory,
                                      @NotNull CommitManager commitManager,
                                      @NotNull RepoDataCleaner repoDataCleaner,
                                      @NotNull IssueKeysExtractor issueKeysExtractor) {
-        this.apiAdapterFactory = apiAdapterFactory;
+        this.repoInfoFactory = repoInfoFactory;
         this.queueItemManager = queueItemManager;
         this.persistStrategyFactory = persistStrategyFactory;
         this.commitManager = commitManager;
@@ -37,10 +41,14 @@ public final class IndexingWorkerFactoryImpl implements IndexingWorkerFactory {
 
     @Override
     @NotNull
-    public IndexingWorker build(@NotNull JigitRepo repo) {
-        final APIAdapter apiAdapter = apiAdapterFactory.getAPIAdapter(repo);
-        return new IndexingWorker(apiAdapter, repo,
-                new DeletingForcePushHandler(commitManager, apiAdapter, repoDataCleaner),
-                queueItemManager, persistStrategyFactory, issueKeysExtractor);
+    public Collection<IndexingWorker> build(@NotNull JigitRepo repo) throws IOException {
+        final Collection<IndexingWorker> workers = new ArrayList<>();
+        for (RepoInfo repoInfo : repoInfoFactory.build(repo)) {
+            workers.add(new IndexingWorker(repoInfo,
+                    new DeletingForcePushHandler(commitManager, repoInfo, repoDataCleaner),
+                    queueItemManager, persistStrategyFactory, issueKeysExtractor));
+
+        }
+        return workers;
     }
 }

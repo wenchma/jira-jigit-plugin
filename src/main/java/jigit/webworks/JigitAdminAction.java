@@ -5,6 +5,7 @@ import com.atlassian.jira.web.action.JiraWebActionSupport;
 import com.atlassian.sal.api.ApplicationProperties;
 import jigit.ao.CommitManager;
 import jigit.common.JigitDateFormatter;
+import jigit.indexer.repository.RepoType;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
 import org.jetbrains.annotations.NotNull;
@@ -28,9 +29,9 @@ public final class JigitAdminAction extends JiraWebActionSupport {
     private final JigitDateFormatter dateFormatter;
 
     public JigitAdminAction(@NotNull ApplicationProperties applicationProperties,
-                              @NotNull JigitSettingsManager settingsManager,
-                              @NotNull CommitManager commitManager,
-                              @NotNull JigitDateFormatter dateFormatter) {
+                            @NotNull JigitSettingsManager settingsManager,
+                            @NotNull CommitManager commitManager,
+                            @NotNull JigitDateFormatter dateFormatter) {
         this.applicationProperties = applicationProperties;
         this.settingsManager = settingsManager;
         this.commitManager = commitManager;
@@ -39,6 +40,10 @@ public final class JigitAdminAction extends JiraWebActionSupport {
 
     public int getCommitCount(@NotNull String repoName, @NotNull String branchName) {
         return commitManager.getCommitCount(repoName, branchName);
+    }
+
+    public int getCommitCount(@NotNull String repoGroupName) {
+        return commitManager.getCommitCount(repoGroupName);
     }
 
     @NotNull
@@ -67,4 +72,14 @@ public final class JigitAdminAction extends JiraWebActionSupport {
     public int getUnits(int units) {
         return (int) TimeUnit.MILLISECONDS.toSeconds(units);
     }
+
+    public @NotNull RepoType[] repoTypes() {
+        return RepoType.values();
+    }
+
+    public @NotNull RepoType singleRepoType() {
+        return RepoType.SingleRepository;
+    }
+
+
 }

@@ -18,10 +18,12 @@ public interface CommitManager {
 
     int getCommitCount(@NotNull String repoName, @NotNull String branchName);
 
+    int getCommitCount(@NotNull String repoGroupName);
+
     @SuppressWarnings("MethodWithTooManyParameters")
     @NotNull
     Commit create(@NotNull String commitSha1, @NotNull String title, @NotNull String author, @NotNull Date createdAt,
-                  @NotNull String repoName, @NotNull String branchName, boolean firstCommit);
+                  @Nullable String repoGroupName, @NotNull String repoName, @NotNull String branchName, boolean firstCommit);
 
     @Nullable
     Commit getLastIndexed(@NotNull String repoName, @NotNull String branch);
@@ -37,7 +39,8 @@ public interface CommitManager {
 
     @NotNull
     @Transactional
-    Commit persist(@NotNull CommitAdapter commitAdapter, @NotNull String repoName, @NotNull String branchName,
+    Commit persist(@NotNull CommitAdapter commitAdapter, @Nullable String repoGroupName,
+                   @NotNull String repoName, @NotNull String branchName,
                    @NotNull Collection<String> issueKeys, @NotNull Collection<CommitFileAdapter> commitFileAdapters) throws ParseException;
 
     @Transactional

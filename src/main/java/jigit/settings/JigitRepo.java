@@ -1,5 +1,6 @@
 package jigit.settings;
 
+import jigit.indexer.repository.RepoType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,6 +18,8 @@ public final class JigitRepo {
     @NotNull
     private final String token;
     @NotNull
+    private final RepoType repoType;
+    @NotNull
     private final String repositoryId;
     @NotNull
     private final String defaultBranch;
@@ -32,6 +35,7 @@ public final class JigitRepo {
     public JigitRepo(@NotNull String repoName,
                      @NotNull String serverUrl,
                      @NotNull String token,
+                     @NotNull RepoType repoType,
                      @NotNull String repositoryId,
                      @NotNull String defaultBranch,
                      boolean enabled,
@@ -39,13 +43,14 @@ public final class JigitRepo {
                      int sleepTimeout,
                      int sleepRequests,
                      boolean indexAllBranches) {
-        this(repoName, serverUrl, token, repositoryId, defaultBranch, enabled, requestTimeout,
+        this(repoName, serverUrl, token, repoType, repositoryId, defaultBranch, enabled, requestTimeout,
                 sleepTimeout, sleepRequests, indexAllBranches, new TreeSet<String>());
     }
 
     public JigitRepo(@NotNull String repoName,
                      @NotNull String serverUrl,
                      @NotNull String token,
+                     @NotNull RepoType repoType,
                      @NotNull String repositoryId,
                      @NotNull String defaultBranch,
                      boolean enabled,
@@ -57,6 +62,7 @@ public final class JigitRepo {
         this.repoName = repoName;
         this.serverUrl = serverUrl;
         this.token = token;
+        this.repoType = repoType;
         this.repositoryId = repositoryId;
         this.defaultBranch = defaultBranch;
         this.enabled = enabled;
@@ -85,6 +91,10 @@ public final class JigitRepo {
     @NotNull
     public String getToken() {
         return token;
+    }
+
+    @NotNull public RepoType getRepoType() {
+        return repoType;
     }
 
     @NotNull
@@ -150,7 +160,6 @@ public final class JigitRepo {
         @SuppressWarnings("QuestionableName") final JigitRepo that = (JigitRepo) other;
 
         return repoName.equals(that.repoName);
-
     }
 
     @Override

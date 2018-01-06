@@ -1,4 +1,4 @@
-package jigit.indexer;
+package jigit.indexer.branch;
 
 import jigit.settings.JigitRepo;
 import org.jetbrains.annotations.NotNull;

@@ -2,6 +2,7 @@ package api.client.http;
 
 import api.APIException;
 import com.google.gson.Gson;
+import jigit.Function;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,9 +144,5 @@ public final class ApiHttpRequester {
         public @NotNull T apply(@NotNull Reader reader) {
             return GSON.fromJson(reader, type);
         }
-    }
-
-    public interface Function<F, T> {
-        @NotNull T apply(@NotNull F arg);
     }
 }

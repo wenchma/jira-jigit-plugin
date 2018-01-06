@@ -3,6 +3,7 @@ package jigit.settings;
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,7 +21,7 @@ public final class JigitSettingsManagerImpl implements JigitSettingsManager {
     @NotNull
     private final PluginSettings pluginSettings;
     @NotNull
-    private final Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder().registerTypeAdapterFactory(new JigitRepoTypeAdapterFactory()).create();
 
     public JigitSettingsManagerImpl(@NotNull PluginSettingsFactory pluginSettingsFactory) {
         pluginSettings = pluginSettingsFactory.createSettingsForKey(JIGIT_PLUGIN_KEY);
@@ -61,8 +62,8 @@ public final class JigitSettingsManagerImpl implements JigitSettingsManager {
 
     @NotNull
     private Map<String, JigitRepo> getRepos() {
-        @SuppressWarnings("EmptyClass")
-        final Type settingsType = new TypeToken<Map<String,JigitRepo>>(){}.getType();
+        @SuppressWarnings("EmptyClass") final Type settingsType = new TypeToken<Map<String, JigitRepo>>() {
+        }.getType();
 
         final Map<String, JigitRepo> repos = gson.fromJson((String) pluginSettings.get(JIGIT_REPO_KEY), settingsType);
 

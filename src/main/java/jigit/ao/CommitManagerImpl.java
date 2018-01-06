@@ -56,11 +56,16 @@ public final class CommitManagerImpl implements CommitManager {
         return ao.count(Commit.class, "REPO_NAME = ? AND BRANCH = ?", repoName, branchName);
     }
 
+    @Override
+    public int getCommitCount(@NotNull String repoGroupName) {
+        return ao.count(Commit.class, "REPO_GROUP = ?", repoGroupName);
+    }
+
     @SuppressWarnings("MethodWithTooManyParameters")
     @Override
     @NotNull
     public Commit create(@NotNull String commitSha1, @NotNull String title, @NotNull String author,
-                         @NotNull Date createdAt, @NotNull String repoName, @NotNull String branchName,
+                         @NotNull Date createdAt, @Nullable String repoGroupName, @NotNull String repoName, @NotNull String branchName,
                          boolean firstCommit) {
         return ao.create(Commit.class,
                 new DBParam("COMMIT_SHA1", commitSha1),
@@ -68,6 +73,7 @@ public final class CommitManagerImpl implements CommitManager {
                 new DBParam("AUTHOR", author),
                 new DBParam("CREATED_AT", createdAt),
                 new DBParam("FIRST_COMMIT", firstCommit),
+                new DBParam("REPO_GROUP", repoGroupName),
                 new DBParam("REPO_NAME", repoName),
                 new DBParam("BRANCH", branchName));
     }
@@ -162,6 +168,7 @@ public final class CommitManagerImpl implements CommitManager {
     @NotNull
     @Transactional
     public Commit persist(@NotNull CommitAdapter commitAdapter,
+                          @Nullable String repoGroupName,
                           @NotNull String repoName,
                           @NotNull String branchName,
                           @NotNull Collection<String> issueKeys,
@@ -170,7 +177,7 @@ public final class CommitManagerImpl implements CommitManager {
         final boolean firstCommit = commitAdapter.getParentSha1s().isEmpty();
         final Date createdAt = CommitDateHelper.toUTC(commitAdapter.getCreatedAt());
         final Commit commit = create(commitAdapter.getCommitSha1(), commitAdapter.getTitle(), commitAdapter.getAuthorName(),
-                createdAt, repoName, branchName, firstCommit);
+                createdAt, repoGroupName, repoName, branchName, firstCommit);
 
         if (issueKeys.isEmpty()) {
             return commit;

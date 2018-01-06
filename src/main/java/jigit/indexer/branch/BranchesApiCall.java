@@ -1,7 +1,6 @@
-package jigit.indexer;
+package jigit.indexer.branch;
 
 import jigit.indexer.api.APIAdapter;
-import jigit.settings.JigitRepo;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -10,11 +9,11 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 public final class BranchesApiCall implements BranchesStrategy {
-    private final @NotNull JigitRepo repo;
+    private final @NotNull String defaultBranch;
     private final @NotNull APIAdapter apiAdapter;
 
-    public BranchesApiCall(@NotNull JigitRepo repo, @NotNull APIAdapter apiAdapter) {
-        this.repo = repo;
+    public BranchesApiCall(@NotNull String defaultBranch, @NotNull APIAdapter apiAdapter) {
+        this.defaultBranch = defaultBranch;
         this.apiAdapter = apiAdapter;
     }
 
@@ -22,7 +21,7 @@ public final class BranchesApiCall implements BranchesStrategy {
     @Override
     public SortedSet<String> branches() throws IOException {
         final TreeSet<String> branches = new TreeSet<>(apiAdapter.branches());
-        branches.remove(repo.getDefaultBranch());
+        branches.remove(defaultBranch);
         return Collections.unmodifiableSortedSet(branches);
     }
 }

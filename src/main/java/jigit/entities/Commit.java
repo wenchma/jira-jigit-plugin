@@ -23,11 +23,11 @@ public interface Commit extends Entity {
 
     @NotNull
     @net.java.ao.schema.NotNull
-    @StringLength(value=StringLength.UNLIMITED)
+    @StringLength(value = StringLength.UNLIMITED)
     String getTitle();
 
     @net.java.ao.schema.NotNull
-    @StringLength(value=StringLength.UNLIMITED)
+    @StringLength(value = StringLength.UNLIMITED)
     void setTitle(@NotNull String title);
 
     @NotNull
@@ -43,6 +43,13 @@ public interface Commit extends Entity {
 
     @net.java.ao.schema.NotNull
     void setCreatedAt(@NotNull Date createdAt);
+
+    @Indexed
+    @Nullable
+    String getRepoGroup();
+
+    @Indexed
+    void setRepoGroup(@Nullable String title);
 
     @Indexed
     @NotNull

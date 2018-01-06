@@ -2,6 +2,9 @@ package jigit.indexer;
 
 import com.google.common.collect.Sets;
 import jigit.indexer.api.APIAdaptedStub;
+import jigit.indexer.branch.BranchesStrategy;
+import jigit.indexer.branch.BranchesStrategyFactory;
+import jigit.indexer.repository.RepoType;
 import jigit.settings.JigitRepo;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -21,21 +24,23 @@ public final class BranchesStrategyFactoryTest {
 
     @Test
     public void branchesReturnedForRepoWithIndexSelectedBranchesSettingOn() throws IOException {
-        final JigitRepo repo = new JigitRepo("name", "url", "token", "repoId", APIAdaptedStub.MASTER, true, 1,
+        final JigitRepo repo = new JigitRepo("name", "url", "token",
+                RepoType.SingleRepository, "repoId", APIAdaptedStub.MASTER, true, 1,
                 (int) TimeUnit.SECONDS.toMillis(1), 2, false, EXPECTED_BRANCHES);
         checkReturnedBranches(repo);
     }
 
     @Test
     public void branchesReturnedForRepoWithIndexAllBranchesSettingOn() throws IOException {
-        final JigitRepo repo = new JigitRepo("name", "url", "token", "repoId", APIAdaptedStub.MASTER, true, 1,
+        final JigitRepo repo = new JigitRepo("name", "url", "token",
+                RepoType.SingleRepository, "repoId", APIAdaptedStub.MASTER, true, 1,
                 (int) TimeUnit.SECONDS.toMillis(1), 2, true);
         checkReturnedBranches(repo);
     }
 
     private void checkReturnedBranches(@NotNull JigitRepo repo) throws IOException {
         final BranchesStrategy branchesStrategy =
-                BranchesStrategyFactory.buildBranchesStrategy(repo, new APIAdaptedStub());
+                BranchesStrategyFactory.buildBranchesStrategy(repo, repo.getDefaultBranch(), new APIAdaptedStub());
         final SortedSet<String> branches = branchesStrategy.branches();
         assertEquals(2, branches.size());
         assertTrue(branches.containsAll(EXPECTED_BRANCHES));

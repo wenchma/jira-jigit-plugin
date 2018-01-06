@@ -21,7 +21,7 @@ AJS.$(function () {
             url: form.attr("action"),
             type: "POST",
             dataType: "json",
-            data: form.serialize(),
+            data: serializeForm(form),
             async: false,
             error: function (xhr) {
                 message("#page-message-container",
@@ -35,9 +35,29 @@ AJS.$(function () {
         });
     }
 
+    function preOpenDialogActions(interior) {
+        interior.find("[name='repo_type'").change(function () {
+            if (!AJS.$(this).find("option[value='" + this.value + "']").attr("data-single-repo")) {
+                interior.find("[name='index_all_branches'], [name='def_branch']").prop("disabled", true);
+                interior.find("[name='index_all_branches'][value='true']").prop("checked", true);
+            } else {
+                interior.find("[name='index_all_branches'], [name='def_branch']").removeProp("disabled");
+            }
+        });
+    }
+
+    function serializeForm(form) {
+        var disabled = form.find(':disabled').removeProp('disabled');
+        var serializedData = form.serialize();
+        disabled.prop('disabled', true);
+        return serializedData;
+    }
+
     function showAddDialog() {
         var interior = AJS.$("#add-jigit-repo-container").clone();
-        showDialog(interior, "add-jigit-repo-dialog");
+        preOpenDialogActions(interior);
+
+        showDialog(interior, "add-jigit-repo-dialog", AJS.I18n.getText("jigit.buttons.add"));
     }
 
     function getActionTriggerElement(action) {
@@ -46,19 +66,20 @@ AJS.$(function () {
 
     function showEditDialog() {
         var interior = AJS.$("#edit-jigit-repo-container").clone();
+        preOpenDialogActions(interior);
 
         getActionTriggerElement(this).closest("tr").find("[data-val][data-name]").each(function () {
             var element = AJS.$(this);
             var inputs = interior.find("[name='" + element.attr("data-name") + "']");
-            inputs.val(inputs.first().is(":radio") ? [element.attr("data-val")] : element.attr("data-val"));
+            inputs.val(inputs.first().is(":radio") ? [element.attr("data-val")] : element.attr("data-val")).change();
         });
 
-        showDialog(interior, "edit-jigit-repo-dialog");
+        showDialog(interior, "edit-jigit-repo-dialog", AJS.I18n.getText("jigit.buttons.edit"));
     }
 
-    function showDialog(interior, dialogId) {
+    function showDialog(interior, dialogId, headerText) {
         var dialog = new AJS.Dialog({
-            width: 520,
+            width: 600,
             height: 600,
             id: dialogId
         });
@@ -67,7 +88,7 @@ AJS.$(function () {
             return dialog.attr("id") !== dialogId || reason !== "esc";
         });
 
-        dialog.addHeader(AJS.I18n.getText("jigit.settings.table.columns.jigit.project"));
+        dialog.addHeader(headerText);
 
         dialog.addPanel("Repo", interior, "");
         interior.show();
@@ -76,13 +97,11 @@ AJS.$(function () {
         dialog.addButton(
             AJS.I18n.getText("jigit.buttons.test.connection"),
             function () {
-                var form = interior.find("form");
-
                 AJS.$.ajax({
                     url: AJS.contextPath() + "/rest/jigit/1.0/repo/test",
                     type: "POST",
                     dataType: "json",
-                    data: form.serialize(),
+                    data: serializeForm(interior.find("form")),
                     async: false,
                     error: function (xhr) {
                         message(messageContainerId,
@@ -108,7 +127,7 @@ AJS.$(function () {
                     url: form.attr("action"),
                     type: "POST",
                     dataType: "json",
-                    data: form.serialize(),
+                    data: serializeForm(form),
                     async: false,
                     error: function (xhr) {
                         message(messageContainerId,
@@ -121,6 +140,7 @@ AJS.$(function () {
                         location.reload();
                     }
                 });
+
             },
             "aui-button"
         );

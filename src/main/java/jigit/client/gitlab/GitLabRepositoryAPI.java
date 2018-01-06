@@ -14,11 +14,11 @@ import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
 
+import static jigit.common.APIHelper.ENCODING;
+
 public final class GitLabRepositoryAPI {
     private static final @NotNull Type LIST_OF_BRANCHES = new TypeToken<List<GitLabBranch>>() {
     }.getType();
-    @NotNull
-    private static final String ENCODING = "UTF-8";
     @NotNull
     private static final String PROJECTS_PATH = "api/v3/projects";
     @NotNull

@@ -1,5 +1,6 @@
 package jigit.indexer;
 
+import jigit.indexer.repository.RepoInfo;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
 import org.apache.log4j.Logger;
@@ -26,7 +27,7 @@ public final class JigitIndexer {
 
     public void execute() {
         final ExecutorService executorService = Executors.newFixedThreadPool(THREAD_POOL_SIZE, new JigitThreadFactory());
-        final CompletionService<JigitRepo> completionService = new ExecutorCompletionService<>(executorService);
+        final CompletionService<RepoInfo> completionService = new ExecutorCompletionService<>(executorService);
         final Map<String, JigitRepo> jigitRepos = settingsManager.getJigitRepos();
         int futureTasks = 0;
 
@@ -35,8 +36,10 @@ public final class JigitIndexer {
                 if (!repo.isNeedToIndex()) {
                     continue;
                 }
-                completionService.submit(indexingWorkerFactory.build(repo));
-                futureTasks++;
+                for (IndexingWorker indexingWorker : indexingWorkerFactory.build(repo)) {
+                    completionService.submit(indexingWorker);
+                    futureTasks++;
+                }
             }
         } catch (Exception e) {
             LOG.error("JigitIndexer::execute", e);
@@ -44,7 +47,7 @@ public final class JigitIndexer {
 
         try {
             for (int i = 0; i < futureTasks; i++) {
-                final Future<JigitRepo> projectCompleted = completionService.take();
+                final Future<RepoInfo> projectCompleted = completionService.take();
                 projectCompleted.get();
             }
         } catch (InterruptedException e) {
