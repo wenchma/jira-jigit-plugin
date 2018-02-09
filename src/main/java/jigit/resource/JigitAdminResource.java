@@ -1,4 +1,4 @@
-package jigit.services;
+package jigit.resource;
 
 import com.atlassian.jira.security.JiraAuthenticationContext;
 import com.atlassian.jira.security.PermissionManager;
@@ -14,6 +14,8 @@ import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
@@ -27,7 +29,9 @@ import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 @Path("/")
-public final class JigitAdminRESTService {
+public final class JigitAdminResource {
+    @NotNull
+    private static final Logger log = LoggerFactory.getLogger(JigitAdminResource.class);
     @NotNull
     private static final TimeUnit TIME_UNIT = TimeUnit.SECONDS;
     @NotNull
@@ -47,11 +51,11 @@ public final class JigitAdminRESTService {
     @NotNull
     private final RepoDataCleaner repoDataCleaner;
 
-    public JigitAdminRESTService(@NotNull JiraAuthenticationContext authCtx,
-                                 @NotNull PermissionManager permissionManager,
-                                 @NotNull JigitSettingsManager settingsManager,
-                                 @NotNull RepoInfoFactory repoInfoFactory,
-                                 @NotNull RepoDataCleaner repoDataCleaner) {
+    public JigitAdminResource(@NotNull JiraAuthenticationContext authCtx,
+                              @NotNull PermissionManager permissionManager,
+                              @NotNull JigitSettingsManager settingsManager,
+                              @NotNull RepoInfoFactory repoInfoFactory,
+                              @NotNull RepoDataCleaner repoDataCleaner) {
         this.authCtx = authCtx;
         this.permissionManager = permissionManager;
         this.i18n = authCtx.getI18nHelper();
@@ -92,7 +96,7 @@ public final class JigitAdminRESTService {
                 (int) TIME_UNIT.toMillis(sleepTimeout), sleepRequests, indexAllBranches);
 
         settingsManager.putJigitRepo(jigitRepo);
-
+        log.info("Jigit setting were updated. Item '" + repoName + "' of type " + repoTypeName(jigitRepo) + " was added.");
         return Response.ok().build();
     }
 
@@ -178,7 +182,7 @@ public final class JigitAdminRESTService {
         newRepo.addBranches(jigitRepo.getBranches());
 
         settingsManager.putJigitRepo(newRepo);
-
+        log.info("Jigit setting were updated. Item '" + repoName + "' of type " + repoTypeName(jigitRepo) + " was edited.");
         return Response.ok().build();
     }
 
@@ -196,7 +200,7 @@ public final class JigitAdminRESTService {
         }
 
         settingsManager.removeJigitRepo(repoName);
-
+        log.info("Jigit setting were updated. Item '" + repoName + "' was removed.");
         return getReferrerResponse(request);
     }
 
@@ -217,7 +221,7 @@ public final class JigitAdminRESTService {
             return Response.noContent().status(Response.Status.NOT_FOUND).build();
         }
         repoDataCleaner.clearRepoData(repoInfoFactory.build(jigitRepo));
-
+        log.info("Jigit setting were updated. Data of item '" + repoName + "' of type " + repoTypeName(jigitRepo) + " was deleted.");
         return getReferrerResponse(request);
     }
 
@@ -251,7 +255,7 @@ public final class JigitAdminRESTService {
             DisabledRepos.instance.markDisabled(repoName);
         }
         settingsManager.putJigitRepo(newRepo);
-
+        log.info("Jigit setting were updated. Item '" + repoName + "' of type " + repoTypeName(jigitRepo) + " was " + (enabled ? "enabled" : "disabled") + '.');
         return getReferrerResponse(request);
     }
 
@@ -275,7 +279,7 @@ public final class JigitAdminRESTService {
         }
         jigitRepo.addBranch(branch.trim());
         settingsManager.putJigitRepo(jigitRepo);
-
+        log.info("Jigit setting were updated. Branch '" + branch + "' was added to repo '" + repoName + "'.");
         return Response.ok().build();
     }
 
@@ -299,8 +303,13 @@ public final class JigitAdminRESTService {
         }
         jigitRepo.removeBranch(branch);
         settingsManager.putJigitRepo(jigitRepo);
-
+        log.info("Jigit setting were updated. Branch '" + branch + "' was removed from repo '" + repoName + "'.");
         return getReferrerResponse(request);
+    }
+
+    @NotNull
+    private String repoTypeName(@NotNull JigitRepo jigitRepo) {
+        return i18n.getText(jigitRepo.getRepoType().getDisplayName());
     }
 
     @Nullable
@@ -331,5 +340,4 @@ public final class JigitAdminRESTService {
 
         return Response.seeOther(uri).build();
     }
-
 }

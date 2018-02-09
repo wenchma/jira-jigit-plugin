@@ -1,4 +1,4 @@
-package jigit.services;
+package jigit.resource;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

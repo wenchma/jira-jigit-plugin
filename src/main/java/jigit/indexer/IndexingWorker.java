@@ -7,8 +7,9 @@ import jigit.indexer.api.CommitFileAdapter;
 import jigit.indexer.api.LimitExceededException;
 import jigit.indexer.branch.BranchIndexingMode;
 import jigit.indexer.repository.RepoInfo;
-import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -18,7 +19,7 @@ import java.util.concurrent.Callable;
 
 final class IndexingWorker implements Callable<RepoInfo> {
     @NotNull
-    private static final Logger LOG = Logger.getLogger(JigitIndexer.class);
+    private static final Logger log = LoggerFactory.getLogger(JigitIndexer.class);
     @NotNull
     private final RepoInfo repoInfo;
     @NotNull
@@ -51,8 +52,8 @@ final class IndexingWorker implements Callable<RepoInfo> {
                 handleBranchMode(entry.getValue(), entry.getKey());
             }
         } catch (LimitExceededException ignored) {
-            LOG.warn("Repository request limit exceeded for " + repoInfo.getRepoName()
-                    + ". Next indexing starts after " + new Date(repoInfo.getSleepTo()));
+            log.info("Repository request limit exceeded for " + repoInfo.getRepoName()
+                    + ". Next indexing will start after " + new Date(repoInfo.getSleepTo()));
         }
 
         return repoInfo;
@@ -67,7 +68,7 @@ final class IndexingWorker implements Callable<RepoInfo> {
             if (indexingMode.isStopIndexingOnException()) {
                 throw e;
             } else {
-                LOG.error("Got an error while indexing repository " + repoInfo.getRepoFullName()
+                log.error("Got an error while indexing repository " + repoInfo.getRepoFullName()
                         + " and branch " + branch, e);
             }
         }
@@ -91,12 +92,12 @@ final class IndexingWorker implements Callable<RepoInfo> {
                 return;
             }
 
-            LOG.info("Started indexing repository " + repositoryId + " and branch " + branch +
-                    " from head commit " + startCommitSha1);
+            log.debug("Indexing of repository " + repositoryId + " and branch " + branch +
+                    " started from head commit " + startCommitSha1 + '.');
             indexFromCommit(branch, startCommitSha1);
-            LOG.info("Ended indexing repository " + repositoryId + " and branch " + branch);
+            log.debug("Indexing of repository " + repositoryId + " and branch " + branch + " finished.");
         } catch (SocketTimeoutException e) {
-            LOG.info("SocketTimeoutException when trying to get head commit from "
+            log.warn("SocketTimeoutException occurred when trying to get head commit from "
                     + repositoryId + " branch " + branch, e);
         }
     }
@@ -120,13 +121,13 @@ final class IndexingWorker implements Callable<RepoInfo> {
             if (commitSha1 == null) {
                 continue;
             }
-            LOG.info("Commit sha1 fetched " + commitSha1);
+            log.debug("Commit " + commitSha1 + " fetched.");
 
             final CommitAdapter commitAdapter;
             try {
                 commitAdapter = apiAdapter.getCommit(commitSha1);
             } catch (SocketTimeoutException e) {
-                LOG.info("SocketTimeoutException when trying to get commit " + commitSha1 +
+                log.warn("SocketTimeoutException occurred when trying to get commit " + commitSha1 +
                         " from " + repositoryId + " branch " + branch, e);
                 return;
             }
@@ -139,7 +140,7 @@ final class IndexingWorker implements Callable<RepoInfo> {
                 try {
                     commitDiffs = commitAdapter.getCommitDiffs();
                 } catch (SocketTimeoutException e) {
-                    LOG.info("SocketTimeoutException when trying to get diff " + commitSha1 +
+                    log.warn("SocketTimeoutException occurred when trying to get diff " + commitSha1 +
                             " from " + repositoryId + " branch " + branch, e);
                 }
             }
@@ -151,7 +152,7 @@ final class IndexingWorker implements Callable<RepoInfo> {
             commitQueue.addAll(nextCommits);
         }
         if (DisabledRepos.instance.disabled(repoName)) {
-            throw new InterruptedException("Indexing interrupted from the outside.");
+            throw new InterruptedException("Indexing was interrupted from the outside.");
         }
     }
 
