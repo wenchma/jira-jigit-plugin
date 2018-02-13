@@ -4,6 +4,7 @@ import jigit.indexer.api.APIAdapter;
 import jigit.indexer.branch.BranchesApiCall;
 import jigit.settings.JigitRepo;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.SortedSet;
@@ -19,9 +20,13 @@ public final class RepoInfoGroupProxy implements RepoInfo {
 
     public RepoInfoGroupProxy(@NotNull String repoName,
                               @NotNull String repoFullName,
-                              @NotNull String repoGroup, @NotNull String defaultBranch,
+                              @NotNull String repoGroup,
+                              @Nullable String defaultBranch,
                               @NotNull JigitRepo repo,
                               @NotNull APIAdapter apiAdapter) throws IOException {
+        if (defaultBranch == null) {
+            throw new IllegalArgumentException("Got null default branch for repository " + repoFullName);
+        }
         this.repoName = repoName;
         this.repoFullName = repoFullName;
         this.repoGroup = repoGroup;

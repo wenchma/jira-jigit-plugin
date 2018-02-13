@@ -140,8 +140,9 @@ public final class JigitAdminResource {
             }
             final RepoInfo repoInfo = repoInfos.iterator().next();
             repoInfo.getApiAdapter().getHeadCommitSha1(repoInfo.getDefaultBranch());
-        } catch (IOException e) {
-            return Response.ok(e.getMessage()).status(Response.Status.BAD_REQUEST).build();
+        } catch (Exception e) {
+            log.error("An exception was occurred while testing a repository " + repoName, e);
+            return Response.ok(e.getMessage() + "\n. See JIRA log for details.").status(Response.Status.BAD_REQUEST).build();
         }
 
         return Response.ok().build();
