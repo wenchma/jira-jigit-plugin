@@ -6,6 +6,8 @@ import jigit.indexer.api.GroupAPI;
 import jigit.indexer.api.RepoAdapter;
 import jigit.settings.JigitRepo;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,14 +34,20 @@ public enum RepoType {
             final Collection<RepoInfo> repos = new ArrayList<>();
             for (RepoAdapter repository : groupAPI.repositories(jigitRepo.getRepositoryId())) {
                 final String repoFullName = repository.fullName();
+                final String defaultBranch = repository.defaultBranch();
+                if (repoFullName == null || defaultBranch == null) {
+                    log.warn("Got a repository with empty name or default branch:" + repository);
+                    continue;
+                }
                 final String repoGroupName = jigitRepo.getRepoName();
                 repos.add(new RepoInfoGroupProxy(repoGroupName + ": " + repoFullName, repoFullName,
-                        repoGroupName, repository.defaultBranch(), jigitRepo, apiAdapterFactory.apply(repoFullName)));
+                        repoGroupName, defaultBranch, jigitRepo, apiAdapterFactory.apply(repoFullName)));
             }
 
             return repos;
         }
     };
+    private static final @NotNull Logger log = LoggerFactory.getLogger(RepoType.class);
 
     @NotNull
     private final String displayName;

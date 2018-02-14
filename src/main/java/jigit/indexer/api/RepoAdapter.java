@@ -1,9 +1,9 @@
 package jigit.indexer.api;
 
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface RepoAdapter {
-    @NotNull String fullName();
+    @Nullable String fullName();
 
-    @NotNull String defaultBranch();
+    @Nullable String defaultBranch();
 }
