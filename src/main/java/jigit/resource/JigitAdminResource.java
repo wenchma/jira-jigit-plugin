@@ -136,7 +136,7 @@ public final class JigitAdminResource {
         try {
             final Collection<RepoInfo> repoInfos = repoInfoFactory.build(jigitRepo);
             if (repoInfos.isEmpty()) {
-                Response.ok("No repositories found for path '" + repositoryId + "'").status(Response.Status.BAD_REQUEST).build();
+                return Response.ok("No repositories found for path '" + repositoryId + "'").status(Response.Status.BAD_REQUEST).build();
             }
             final RepoInfo repoInfo = repoInfos.iterator().next();
             repoInfo.getApiAdapter().getHeadCommitSha1(repoInfo.getDefaultBranch());
