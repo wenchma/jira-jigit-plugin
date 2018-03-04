@@ -40,8 +40,8 @@ public enum RepoType {
                     continue;
                 }
                 final String repoGroupName = jigitRepo.getRepoName();
-                repos.add(new RepoInfoGroupProxy(repoGroupName + ": " + repoFullName, repoFullName,
-                        repoGroupName, defaultBranch, jigitRepo, apiAdapterFactory.apply(repoFullName)));
+                repos.add(new RepoInfoGroupProxy(GroupRepoName.Rule.buildName(repoGroupName, repoFullName),
+                        repoFullName, repoGroupName, defaultBranch, jigitRepo, apiAdapterFactory.apply(repoFullName)));
             }
 
             return repos;

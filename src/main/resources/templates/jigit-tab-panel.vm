@@ -32,7 +32,16 @@
         <tbody>
         #foreach($commit in $commits)
             <tr>
-                #set($repo = $repos.get($!commit.getRepoName()))
+                #set($fullName = "")
+                #if($commit.getRepoGroup())
+                    #set($repo = $repos.get($!commit.getRepoGroup()))
+                    #set($fullName = $groupRepoNaming.extractRepoFullName($!commit.getRepoName()))
+                #else
+                    #set($repo = $repos.get($!commit.getRepoName()))
+                    #if($repo)
+                        #set($fullName = $repo.getRepositoryId())
+                    #end
+                #end
                 <td class="repo">$!commit.getRepoName()</td>
                 <td class="branch">$!commit.getBranch()</td>
                 <td class="sha1">
@@ -40,8 +49,8 @@
                         <img class="jigit-copy-to-clip" title="Copy to clipboard" align="left"
                              data-sha1="$!commit.getCommitSha1()"
                              src="$req.contextPath/download/resources/com.apanasevich.jira-jigit-plugin:jigit-tab-panel-resources/copy.png">
-                        #if($repo)
-                        <a href="${repo.getServerUrl()}/${repo.getRepositoryId()}/commit/$!{commit.getCommitSha1()}">
+                        #if($repo && $fullName)
+                            <a href="${repo.getServerUrl()}/${fullName}/commit/$!{commit.getCommitSha1()}">
                             $!commit.getCommitSha1().substring(0, 5)...
                         </a>
                         #else

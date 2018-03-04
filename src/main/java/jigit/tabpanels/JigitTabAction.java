@@ -8,6 +8,7 @@ import jigit.common.CommitActionHelper;
 import jigit.common.CommitDateHelper;
 import jigit.common.JigitDateFormatter;
 import jigit.entities.Commit;
+import jigit.indexer.repository.GroupRepoName;
 import jigit.settings.JigitSettingsManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,10 +26,10 @@ public final class JigitTabAction extends AbstractIssueAction {
     private final Issue issue;
 
     public JigitTabAction(@NotNull IssueTabPanelModuleDescriptor descriptor,
-                            @NotNull CommitManager commitManager,
-                            @NotNull JigitSettingsManager settingsManager,
-                            @NotNull JigitDateFormatter dateFormatter,
-                            @NotNull Issue issue) {
+                          @NotNull CommitManager commitManager,
+                          @NotNull JigitSettingsManager settingsManager,
+                          @NotNull JigitDateFormatter dateFormatter,
+                          @NotNull Issue issue) {
         super(descriptor);
         this.commitManager = commitManager;
         this.settingsManager = settingsManager;
@@ -51,6 +52,7 @@ public final class JigitTabAction extends AbstractIssueAction {
         map.put("repos", Collections.unmodifiableMap(settingsManager.getJigitRepos()));
         map.put("commitActionHelper", new CommitActionHelper());
         map.put("commitDateHelper", new CommitDateHelper());
+        map.put("groupRepoNaming", GroupRepoName.Rule);
     }
 
     @Nullable
