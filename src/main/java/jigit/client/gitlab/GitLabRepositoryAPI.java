@@ -49,7 +49,7 @@ public final class GitLabRepositoryAPI {
 
     @Nullable
     public GitLabBranch getBranch(@NotNull String branchName) throws IOException {
-        return gitLab.get(repositoryPath + '/' + BRANCHES_PATH + '/' + branchName)
+        return gitLab.get(repositoryPath + '/' + BRANCHES_PATH + '/' + URLEncoder.encode(branchName, ENCODING))
                 .withResultOf(GitLabBranch.class);
     }
 

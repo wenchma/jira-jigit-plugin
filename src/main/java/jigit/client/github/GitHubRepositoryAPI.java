@@ -8,8 +8,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
+
+import static jigit.common.APIHelper.ENCODING;
 
 public final class GitHubRepositoryAPI {
     private static final @NotNull Type LIST_OF_BRANCHES = new TypeToken<List<GitHubBranch>>() {
@@ -38,7 +41,7 @@ public final class GitHubRepositoryAPI {
 
     @Nullable
     public GitHubBranch getBranch(@NotNull String branchName) throws IOException {
-        return gitHub.get('/' + REPOS_PATH + '/' + repository + '/' + BRANCHES_PATH + '/' + branchName)
+        return gitHub.get('/' + REPOS_PATH + '/' + repository + '/' + BRANCHES_PATH + '/' + URLEncoder.encode(branchName, ENCODING))
                 .withResultOf(GitHubBranch.class);
     }
 
