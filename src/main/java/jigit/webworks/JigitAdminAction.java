@@ -6,14 +6,12 @@ import com.atlassian.sal.api.ApplicationProperties;
 import jigit.ao.CommitManager;
 import jigit.common.JigitDateFormatter;
 import jigit.indexer.repository.RepoType;
+import jigit.indexer.repository.ServiceType;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("unused")
@@ -73,13 +71,15 @@ public final class JigitAdminAction extends JiraWebActionSupport {
         return (int) TimeUnit.MILLISECONDS.toSeconds(units);
     }
 
-    public @NotNull RepoType[] repoTypes() {
-        return RepoType.values();
+    public @NotNull Collection<RepoType> repoTypes() {
+        return RepoType.values;
+    }
+
+    public @NotNull Collection<ServiceType> serviceTypes() {
+        return ServiceType.values;
     }
 
     public @NotNull RepoType singleRepoType() {
         return RepoType.SingleRepository;
     }
-
-
 }

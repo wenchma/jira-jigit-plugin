@@ -19,11 +19,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.regex.Pattern;
 
 public final class RepoInfoFactoryImpl implements RepoInfoFactory {
-    @NotNull
-    private static final Pattern GITHUB_URL_REGEXP = Pattern.compile("^.+github.com.*$", Pattern.CASE_INSENSITIVE);
     @NotNull
     private final JigitSettingsManager settingsManager;
 
@@ -33,12 +30,7 @@ public final class RepoInfoFactoryImpl implements RepoInfoFactory {
 
     @Override @NotNull
     public Collection<RepoInfo> build(@NotNull JigitRepo repo) throws IOException {
-        final String serverUrl = repo.getServerUrl();
-        if (GITHUB_URL_REGEXP.matcher(serverUrl).matches()) {
-            return getGithubAPIAdapter(repo);
-        }
-
-        return getGitlabAPIAdapter(repo);
+        return (repo.getServiceType() == ServiceType.GitHub) ? getGithubAPIAdapter(repo) : getGitlabAPIAdapter(repo);
     }
 
     @NotNull
@@ -63,7 +55,7 @@ public final class RepoInfoFactoryImpl implements RepoInfoFactory {
         final int requestTimeout = repo.getRequestTimeout();
         final GitHubErrorListener errorListener = new GitHubErrorListener(settingsManager, repo);
 
-        final GitHub gitHub = GitHub.connect(repo.getToken(), errorListener, requestTimeout);
+        final GitHub gitHub = GitHub.connect(repo.getServerUrl(), repo.getToken(), errorListener, requestTimeout);
         final GitHubOrganizationsAPI groupsAPI = new GitHubOrganizationsAPI(gitHub);
 
         return repo.getRepoType().repositories(repo, groupsAPI, new Function<String, APIAdapter>() {

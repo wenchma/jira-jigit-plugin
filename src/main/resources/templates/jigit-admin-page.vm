@@ -54,6 +54,7 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
                 </td>
                 <td data-val="$jigitRepo.getServerUrl()" data-name="url">
                     $jigitRepo.getServerUrl()
+                    <span data-val="$jigitRepo.getServiceType().name()" data-name="service_type"></span>
                 </td>
                 <td data-val="$jigitRepo.getRepositoryId()" data-name="repository_id">
                     #set($repoId = $jigitRepo.getRepositoryId())
@@ -228,6 +229,11 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
                     <option value="https://github.com"/>
                     <option value="https://gitlab.com"/>
                 </datalist>
+                <select name="service_type" class="select form-data" style="width: auto;">
+                    #foreach($serviceType in $action.serviceTypes())
+                        <option value="$serviceType.name()">$serviceType.name()</option>
+                    #end
+                </select>
             </div>
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.token")</label>
@@ -283,6 +289,11 @@ $webResourceManager.requireResource("com.apanasevich.jira-jigit-plugin:jigit-adm
                     <option value="https://github.com"/>
                     <option value="https://gitlab.com"/>
                 </datalist>
+                <select name="service_type" class="select form-data" style="width: auto;">
+                    #foreach($serviceType in $action.serviceTypes())
+                        <option value="$serviceType.name()">$serviceType.name()</option>
+                    #end
+                </select>
             </div>
             <div class="field-group">
                 <label>$i18n.getText("jigit.settings.table.columns.token")</label>

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -47,8 +48,8 @@ public enum RepoType {
             return repos;
         }
     };
+    public static final @NotNull Collection<RepoType> values = Arrays.asList(RepoType.values());
     private static final @NotNull Logger log = LoggerFactory.getLogger(RepoType.class);
-
     @NotNull
     private final String displayName;
 

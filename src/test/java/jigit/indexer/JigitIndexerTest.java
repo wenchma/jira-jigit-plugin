@@ -15,6 +15,7 @@ import jigit.indexer.api.CommitFileAdapter;
 import jigit.indexer.api.TestRepoInfoFactory;
 import jigit.indexer.repository.RepoInfo;
 import jigit.indexer.repository.RepoType;
+import jigit.indexer.repository.ServiceType;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
 import org.jetbrains.annotations.NotNull;
@@ -34,17 +35,18 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("ClassWithTooManyFields")
 public final class JigitIndexerTest extends DBTester {
     @NotNull
-    public static final TreeSet<String> BRANCHES = Sets.newTreeSet(Arrays.asList(APIAdaptedStub.BRANCH1, APIAdaptedStub.BRANCH2));
+    private static final TreeSet<String> BRANCHES = Sets.newTreeSet(Arrays.asList(APIAdaptedStub.BRANCH1, APIAdaptedStub.BRANCH2));
     @NotNull
     private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
     @NotNull
-    private static final JigitRepo SINGLE_JIGIT_REPO = new JigitRepo(REPO_NAME, "url", "token",
+    private static final JigitRepo SINGLE_JIGIT_REPO = new JigitRepo(REPO_NAME, "url", ServiceType.GitHub, "token",
             RepoType.SingleRepository, "repoId",
             APIAdaptedStub.MASTER, true, 1, (int) TimeUnit.SECONDS.toMillis(1), 2, false, BRANCHES);
     @NotNull
-    private static final JigitRepo GROUP_JIGIT_REPO = new JigitRepo(GROUP_NAME, "url", "token",
+    private static final JigitRepo GROUP_JIGIT_REPO = new JigitRepo(GROUP_NAME, "url", ServiceType.GitLab, "token",
             RepoType.GroupOfRepositories, GROUP_NAME,
             APIAdaptedStub.MASTER, true, 1, (int) TimeUnit.SECONDS.toMillis(1), 2, false, BRANCHES);
     @NotNull
@@ -67,6 +69,11 @@ public final class JigitIndexerTest extends DBTester {
     @NotNull
     private RepoInfo groupRepoInfo;
 
+    @AfterClass
+    public static void tearDownAll() {
+        executorService.shutdown();
+    }
+
     @Override
     @Before
     public void setUp() throws IOException {
@@ -83,11 +90,6 @@ public final class JigitIndexerTest extends DBTester {
         jigitIndexer = new JigitIndexer(jigitSettingsManager, indexingWorkerFactory);
         DisabledRepos.instance.markEnabled(singleRepoInfo.getRepoName());
         DisabledRepos.instance.markEnabled(groupRepoInfo.getRepoName());
-    }
-
-    @AfterClass
-    public static void tearDownAll() {
-        executorService.shutdown();
     }
 
     @Test
@@ -107,7 +109,7 @@ public final class JigitIndexerTest extends DBTester {
         final TreeSet<String> branches = new TreeSet<>(BRANCHES);
         branches.add("a-branch");
         final JigitRepo jigitRepoWithWrongBrachName = new JigitRepo(SINGLE_JIGIT_REPO.getRepoName(),
-                SINGLE_JIGIT_REPO.getServerUrl(), SINGLE_JIGIT_REPO.getToken(),
+                SINGLE_JIGIT_REPO.getServerUrl(), ServiceType.GitHub, SINGLE_JIGIT_REPO.getToken(),
                 SINGLE_JIGIT_REPO.getRepoType(), SINGLE_JIGIT_REPO.getRepositoryId(),
                 SINGLE_JIGIT_REPO.getDefaultBranch(), SINGLE_JIGIT_REPO.isEnabled(), SINGLE_JIGIT_REPO.getRequestTimeout(),
                 SINGLE_JIGIT_REPO.getSleepTimeout(), SINGLE_JIGIT_REPO.getSleepRequests(),

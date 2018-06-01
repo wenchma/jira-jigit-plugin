@@ -5,6 +5,7 @@ import jigit.indexer.api.APIAdaptedStub;
 import jigit.indexer.branch.BranchesStrategy;
 import jigit.indexer.branch.BranchesStrategyFactory;
 import jigit.indexer.repository.RepoType;
+import jigit.indexer.repository.ServiceType;
 import jigit.settings.JigitRepo;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -24,7 +25,7 @@ public final class BranchesStrategyFactoryTest {
 
     @Test
     public void branchesReturnedForRepoWithIndexSelectedBranchesSettingOn() throws IOException {
-        final JigitRepo repo = new JigitRepo("name", "url", "token",
+        final JigitRepo repo = new JigitRepo("name", "url", ServiceType.GitHub, "token",
                 RepoType.SingleRepository, "repoId", APIAdaptedStub.MASTER, true, 1,
                 (int) TimeUnit.SECONDS.toMillis(1), 2, false, EXPECTED_BRANCHES);
         checkReturnedBranches(repo);
@@ -32,7 +33,7 @@ public final class BranchesStrategyFactoryTest {
 
     @Test
     public void branchesReturnedForRepoWithIndexAllBranchesSettingOn() throws IOException {
-        final JigitRepo repo = new JigitRepo("name", "url", "token",
+        final JigitRepo repo = new JigitRepo("name", "url", ServiceType.GitLab, "token",
                 RepoType.SingleRepository, "repoId", APIAdaptedStub.MASTER, true, 1,
                 (int) TimeUnit.SECONDS.toMillis(1), 2, true);
         checkReturnedBranches(repo);

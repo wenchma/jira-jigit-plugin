@@ -21,7 +21,10 @@ public final class JigitSettingsManagerImpl implements JigitSettingsManager {
     @NotNull
     private final PluginSettings pluginSettings;
     @NotNull
-    private final Gson gson = new GsonBuilder().registerTypeAdapterFactory(new JigitRepoTypeAdapterFactory()).create();
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapterFactory(new JigitRepoTypeAdapterFactory())
+            .registerTypeAdapterFactory(new JigitServerTypeAdapterFactory())
+            .create();
 
     public JigitSettingsManagerImpl(@NotNull PluginSettingsFactory pluginSettingsFactory) {
         pluginSettings = pluginSettingsFactory.createSettingsForKey(JIGIT_PLUGIN_KEY);

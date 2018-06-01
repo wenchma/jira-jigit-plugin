@@ -1,6 +1,7 @@
 package jigit.settings;
 
 import jigit.indexer.repository.RepoType;
+import jigit.indexer.repository.ServiceType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,12 +10,14 @@ import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-@SuppressWarnings({"unused", "ClassWithTooManyFields"})
+@SuppressWarnings({"ClassWithTooManyFields"})
 public final class JigitRepo {
     @NotNull
     private final String repoName;
     @NotNull
     private final String serverUrl;
+    @NotNull
+    private final ServiceType serviceType;
     @NotNull
     private final String token;
     @NotNull
@@ -29,11 +32,12 @@ public final class JigitRepo {
     private final int requestTimeout;
     private final int sleepTimeout;
     private final int sleepRequests;
-    private long sleepTo;
     private final boolean indexAllBranches;
+    private long sleepTo;
 
     public JigitRepo(@NotNull String repoName,
                      @NotNull String serverUrl,
+                     @NotNull ServiceType serviceType,
                      @NotNull String token,
                      @NotNull RepoType repoType,
                      @NotNull String repositoryId,
@@ -43,12 +47,13 @@ public final class JigitRepo {
                      int sleepTimeout,
                      int sleepRequests,
                      boolean indexAllBranches) {
-        this(repoName, serverUrl, token, repoType, repositoryId, defaultBranch, enabled, requestTimeout,
+        this(repoName, serverUrl, serviceType, token, repoType, repositoryId, defaultBranch, enabled, requestTimeout,
                 sleepTimeout, sleepRequests, indexAllBranches, new TreeSet<String>());
     }
 
     public JigitRepo(@NotNull String repoName,
                      @NotNull String serverUrl,
+                     @NotNull ServiceType serviceType,
                      @NotNull String token,
                      @NotNull RepoType repoType,
                      @NotNull String repositoryId,
@@ -61,6 +66,7 @@ public final class JigitRepo {
                      @NotNull SortedSet<String> branches) {
         this.repoName = repoName;
         this.serverUrl = serverUrl;
+        this.serviceType = serviceType;
         this.token = token;
         this.repoType = repoType;
         this.repositoryId = repositoryId;
@@ -86,6 +92,11 @@ public final class JigitRepo {
     @NotNull
     public String getServerUrl() {
         return serverUrl;
+    }
+
+    @NotNull
+    public ServiceType getServiceType() {
+        return serviceType;
     }
 
     @NotNull
@@ -157,9 +168,9 @@ public final class JigitRepo {
         if (this == other) return true;
         if (other == null || getClass() != other.getClass()) return false;
 
-        @SuppressWarnings("QuestionableName") final JigitRepo that = (JigitRepo) other;
+        final JigitRepo jigitRepo = (JigitRepo) other;
 
-        return repoName.equals(that.repoName);
+        return repoName.equals(jigitRepo.repoName);
     }
 
     @Override

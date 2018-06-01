@@ -10,6 +10,7 @@ import jigit.indexer.RepoDataCleaner;
 import jigit.indexer.repository.RepoInfo;
 import jigit.indexer.repository.RepoInfoFactory;
 import jigit.indexer.repository.RepoType;
+import jigit.indexer.repository.ServiceType;
 import jigit.settings.JigitRepo;
 import jigit.settings.JigitSettingsManager;
 import org.jetbrains.annotations.NotNull;
@@ -42,14 +43,14 @@ public final class JigitAdminResource {
     private final I18nHelper i18n;
     @NotNull
     private final JigitSettingsManager settingsManager;
-    @SuppressWarnings({"NotInitAndNotUsedInspection", "NullableProblems"})
-    @NotNull
-    @Context
-    private HttpServletRequest request;
     @NotNull
     private final RepoInfoFactory repoInfoFactory;
     @NotNull
     private final RepoDataCleaner repoDataCleaner;
+    @SuppressWarnings({"NotInitAndNotUsedInspection", "NullableProblems"})
+    @NotNull
+    @Context
+    private HttpServletRequest request;
 
     public JigitAdminResource(@NotNull JiraAuthenticationContext authCtx,
                               @NotNull PermissionManager permissionManager,
@@ -70,6 +71,7 @@ public final class JigitAdminResource {
     @Produces(MediaType.TEXT_HTML)
     public Response addRepo(@NotNull @FormParam("repo_name") @DefaultValue("") String repoName,
                             @NotNull @FormParam("url") @DefaultValue("") String url,
+                            @Nullable @FormParam("service_type") ServiceType serviceType,
                             @NotNull @FormParam("token") @DefaultValue("") String token,
                             @Nullable @FormParam("repo_type") RepoType repoType,
                             @NotNull @FormParam("repository_id") @DefaultValue("") String repositoryId,
@@ -82,7 +84,8 @@ public final class JigitAdminResource {
         if (response != null) {
             return response;
         }
-        if (repoType == null || repoName.isEmpty() || url.isEmpty() || token.isEmpty() || repositoryId.isEmpty() || branch.isEmpty()) {
+        if (serviceType == null || repoType == null || repoName.isEmpty() || url.isEmpty() || token.isEmpty()
+                || repositoryId.isEmpty() || branch.isEmpty()) {
             return Response.ok(i18n.getText("jigit.error.params.empty")).status(Response.Status.BAD_REQUEST).build();
         }
         final JigitRepo existedJigitRepo = settingsManager.getJigitRepo(repoName);
@@ -90,7 +93,7 @@ public final class JigitAdminResource {
             return Response.ok(i18n.getText("jigit.error.params.repo.exists", repoName)).status(Response.Status.BAD_REQUEST).build();
         }
 
-        final JigitRepo jigitRepo = new JigitRepo(repoName.trim(), url.trim(), token,
+        final JigitRepo jigitRepo = new JigitRepo(repoName.trim(), url.trim(), serviceType, token,
                 repoType, repositoryId.trim(),
                 branch.trim(), true, (int) TIME_UNIT.toMillis(requestTimeout),
                 (int) TIME_UNIT.toMillis(sleepTimeout), sleepRequests, indexAllBranches);
@@ -106,6 +109,7 @@ public final class JigitAdminResource {
     @Produces(MediaType.TEXT_HTML)
     public Response testRepo(@NotNull @FormParam("repo_name") @DefaultValue("") String repoName,
                              @NotNull @FormParam("url") @DefaultValue("") String url,
+                             @Nullable @FormParam("service_type") ServiceType serviceType,
                              @NotNull @FormParam("token") @DefaultValue("") String token,
                              @NotNull @FormParam("change_token") @DefaultValue("") HtmlCheckbox changeToken,
                              @Nullable @FormParam("repo_type") RepoType repoType,
@@ -116,18 +120,19 @@ public final class JigitAdminResource {
         if (response != null) {
             return response;
         }
-        if (repoType == null || repoName.isEmpty() || url.isEmpty() || repositoryId.isEmpty() || branch.isEmpty()) {
+        if (serviceType == null || repoType == null || repoName.isEmpty() || url.isEmpty()
+                || repositoryId.isEmpty() || branch.isEmpty()) {
             return Response.ok(i18n.getText("jigit.error.params.empty")).status(Response.Status.BAD_REQUEST).build();
         }
 
         final JigitRepo existedJigitRepo = settingsManager.getJigitRepo(repoName);
         final JigitRepo jigitRepo;
         if (changeToken.isChecked() || existedJigitRepo == null) {
-            jigitRepo = new JigitRepo(repoName, url.trim(), token, repoType, repositoryId.trim(),
+            jigitRepo = new JigitRepo(repoName, url.trim(), serviceType, token, repoType, repositoryId.trim(),
                     branch.trim(), true, (int) TIME_UNIT.toMillis(requestTimeout),
                     (int) TIME_UNIT.toMillis(0), 0, false);
         } else {
-            jigitRepo = new JigitRepo(repoName, url.trim(), existedJigitRepo.getToken(),
+            jigitRepo = new JigitRepo(repoName, url.trim(), serviceType, existedJigitRepo.getToken(),
                     existedJigitRepo.getRepoType(), repositoryId.trim(),
                     branch.trim(), true, (int) TIME_UNIT.toMillis(requestTimeout),
                     (int) TIME_UNIT.toMillis(0), 0, false);
@@ -154,6 +159,7 @@ public final class JigitAdminResource {
     @Produces(MediaType.TEXT_HTML)
     public Response editRepo(@NotNull @FormParam("repo_name") @DefaultValue("") String repoName,
                              @NotNull @FormParam("url") @DefaultValue("") String url,
+                             @Nullable @FormParam("service_type") ServiceType serviceType,
                              @NotNull @FormParam("token") @DefaultValue("") String token,
                              @NotNull @FormParam("repository_id") @DefaultValue("") String repositoryId,
                              @NotNull @FormParam("def_branch") @DefaultValue("") String branch,
@@ -166,7 +172,7 @@ public final class JigitAdminResource {
         if (response != null) {
             return response;
         }
-        if (repoName.isEmpty() || url.isEmpty() || repositoryId.isEmpty() || branch.isEmpty()) {
+        if (serviceType == null || repoName.isEmpty() || url.isEmpty() || repositoryId.isEmpty() || branch.isEmpty()) {
             return Response.ok(i18n.getText("jigit.error.params.empty")).status(Response.Status.BAD_REQUEST).build();
         }
 
@@ -176,7 +182,7 @@ public final class JigitAdminResource {
         }
 
         final String newToken = changeToken.isChecked() ? token : jigitRepo.getToken();
-        final JigitRepo newRepo = new JigitRepo(repoName.trim(), url.trim(), newToken,
+        final JigitRepo newRepo = new JigitRepo(repoName.trim(), url.trim(), serviceType, newToken,
                 jigitRepo.getRepoType(), repositoryId.trim(),
                 branch.trim(), jigitRepo.isEnabled(), (int) TIME_UNIT.toMillis(requestTimeout),
                 (int) TIME_UNIT.toMillis(sleepTimeout), sleepRequest, indexAllBranches);
@@ -245,7 +251,7 @@ public final class JigitAdminResource {
         }
 
         final JigitRepo newRepo = new JigitRepo(jigitRepo.getRepoName(), jigitRepo.getServerUrl(),
-                jigitRepo.getToken(), jigitRepo.getRepoType(), jigitRepo.getRepositoryId(),
+                jigitRepo.getServiceType(), jigitRepo.getToken(), jigitRepo.getRepoType(), jigitRepo.getRepositoryId(),
                 jigitRepo.getDefaultBranch(), enabled, jigitRepo.getRequestTimeout(),
                 jigitRepo.getSleepTimeout(), jigitRepo.getSleepRequests(), jigitRepo.isIndexAllBranches());
         newRepo.addBranches(jigitRepo.getBranches());

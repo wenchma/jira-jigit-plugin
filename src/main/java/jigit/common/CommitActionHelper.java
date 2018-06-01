@@ -8,7 +8,7 @@ public final class CommitActionHelper {
     //used in velocity
     @Nullable
     public static CommitAction parse(int id) {
-        for (CommitAction action : CommitAction.values()) {
+        for (CommitAction action : CommitAction.values) {
             if (action.getId() == id) {
                 return action;
             }
