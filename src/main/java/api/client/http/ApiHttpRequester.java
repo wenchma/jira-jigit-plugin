@@ -3,6 +3,7 @@ package api.client.http;
 import api.APIException;
 import com.google.gson.Gson;
 import jigit.Function;
+import jigit.common.HeaderConsumer;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +16,7 @@ import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 
 public final class ApiHttpRequester {
@@ -27,6 +29,8 @@ public final class ApiHttpRequester {
     private final URL url;
     @NotNull
     private HttpMethod httpMethod = HttpMethod.GET;
+    @Nullable
+    private HeaderConsumer<Map<String, List<String>>> headerConsumer;
     @NotNull
     private final Map<String, String> requestProperties;
     @NotNull
@@ -45,6 +49,12 @@ public final class ApiHttpRequester {
     @NotNull
     public ApiHttpRequester withMethod(@NotNull HttpMethod method) {
         this.httpMethod = method;
+        return this;
+    }
+
+    @NotNull
+    public ApiHttpRequester withHeaderConsumer(@NotNull HeaderConsumer<Map<String, List<String>>> headersConsumer) {
+        this.headerConsumer = headersConsumer;
         return this;
     }
 
@@ -91,6 +101,9 @@ public final class ApiHttpRequester {
         InputStreamReader reader = null;
         try {
             reader = new InputStreamReader(connection.getInputStream(), ENCODING);
+            if (headerConsumer != null) {
+                headerConsumer.accept(connection.getHeaderFields());
+            }
             return streamReaderFunction.apply(reader);
         } catch (IOException e) {
             handleError(e, connection);

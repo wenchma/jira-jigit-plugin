@@ -25,12 +25,23 @@ public abstract class ApiClient {
 
     @NotNull
     public ApiHttpRequester get(@NotNull String endpointUrl) throws IOException {
-        return getApiHttpRequestor(endpointUrl);
+        return getApiHttpRequestor(getAPIUrl(endpointUrl));
     }
 
     @NotNull
-    private ApiHttpRequester getApiHttpRequestor(@NotNull String endpointUrl) throws IOException {
-        return new ApiHttpRequester(getAPIUrl(endpointUrl), getRequestTimeout(), getErrorListener(), getRequestParameters());
+    public ApiHttpRequester get(@NotNull URL url) throws IOException {
+        return getApiHttpRequestor(url);
+    }
+
+    @NotNull
+    public String fullPath(@NotNull String tailAPIUrl) {
+        final String maybeSlash = tailAPIUrl.startsWith("/") ? "" : "/";
+        return apiUrl + maybeSlash + tailAPIUrl;
+    }
+
+    @NotNull
+    private ApiHttpRequester getApiHttpRequestor(@NotNull URL url) {
+        return new ApiHttpRequester(url, getRequestTimeout(), getErrorListener(), getRequestParameters());
     }
 
     @NotNull
@@ -38,7 +49,7 @@ public abstract class ApiClient {
 
     @NotNull
     public ApiHttpRequester post(@NotNull String endpointUrl) throws IOException {
-        return getApiHttpRequestor(endpointUrl).withMethod(HttpMethod.POST);
+        return getApiHttpRequestor(getAPIUrl(endpointUrl)).withMethod(HttpMethod.POST);
     }
 
     protected abstract int getRequestTimeout();
@@ -48,7 +59,6 @@ public abstract class ApiClient {
 
     @NotNull
     private URL getAPIUrl(@NotNull String tailAPIUrl) throws IOException {
-        final String maybeSlash = tailAPIUrl.startsWith("/") ? "" : "/";
-        return new URL(apiUrl + maybeSlash + tailAPIUrl);
+        return new URL(fullPath(tailAPIUrl));
     }
 }
