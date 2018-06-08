@@ -18,7 +18,7 @@ public final class GitLabRepositoryAPI {
     private static final @NotNull Type LIST_OF_BRANCHES = new TypeToken<List<GitLabBranch>>() {
     }.getType();
     @NotNull
-    private static final String PROJECTS_PATH = "api/v3/projects";
+    private static final String PROJECTS_PATH = "api/v4/projects";
     @NotNull
     private static final String BRANCHES_PATH = "repository/branches";
     @NotNull
