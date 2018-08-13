@@ -86,6 +86,21 @@ public final class CommitManagerTest extends DBTester {
         assertEquals(0, getEntityManager().count(CommitDiff.class));
     }
 
+    @Test
+    public void emptyCommitDiffIsIgnored() throws ParseException, SQLException {
+        final GitHubCommit.CommitInfo commitInfo = new GitHubCommit.CommitInfo(
+                new GitHubAuthor("me", "2016/01/02 12:00:00 UTC"), "whatever");
+        final GitHubCommit gitHubCommit = new GitHubCommit(UUID.randomUUID().toString(), commitInfo,
+                Collections.<GitHubCommit.ParentCommit>emptyList(), Collections.<GitHubCommit.File>emptyList());
+        final GitHubCommit.File gitHubFile = new GitHubCommit.File("", "", "");
+        final CommitFileAdapter githubCommitFileAdapter = new GithubCommitFileAdapter(gitHubFile);
+        getCommitManager().persist(new GithubCommitAdapter(gitHubCommit), GROUP_NAME, REPO_NAME, "master",
+                singletonList("KEY-1"), singletonList(githubCommitFileAdapter));
+
+        assertEquals(1, getEntityManager().count(Commit.class));
+        assertEquals(1, getEntityManager().count(CommitIssue.class));
+        assertEquals(0, getEntityManager().count(CommitDiff.class));
+    }
 
     private void createCommitStuff(@NotNull String branch, @NotNull List<String> issueKeys) throws ParseException {
         final String sha1 = UUID.randomUUID().toString();

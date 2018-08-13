@@ -219,24 +219,26 @@ public final class CommitManagerImpl implements CommitManager {
         }
     }
 
-    @NotNull
-    private CommitIssue createCommitIssue(int commitId, @NotNull String issueKey) {
-        return ao.create(CommitIssue.class,
+    private void createCommitIssue(int commitId, @NotNull String issueKey) {
+        ao.create(CommitIssue.class,
                 new DBParam("COMMIT_ID", commitId),
                 new DBParam("ISSUE_KEY", issueKey));
     }
 
     private void createCommitDiffs(int commitId, @NotNull Collection<CommitFileAdapter> commitFileAdapters) {
         for (CommitFileAdapter commitFileAdapter : commitFileAdapters) {
+            if (commitFileAdapter.getNewPath().isEmpty() &&
+                    (commitFileAdapter.getOldPath() == null || commitFileAdapter.getOldPath().isEmpty())) {
+                continue;
+            }
             createCommitDiff(commitId, commitFileAdapter);
         }
     }
 
-    @NotNull
-    private CommitDiff createCommitDiff(int commitId, @NotNull CommitFileAdapter commitFileAdapter) {
+    private void createCommitDiff(int commitId, @NotNull CommitFileAdapter commitFileAdapter) {
         final String newPath = commitFileAdapter.getNewPath();
         final String oldPath = commitFileAdapter.getOldPath();
-        return ao.create(CommitDiff.class,
+        ao.create(CommitDiff.class,
                 new DBParam("COMMIT_ID", commitId),
                 new DBParam("NEW_PATH", newPath),
                 new DBParam("OLD_PATH", newPath.equals(oldPath) ? null : oldPath),
