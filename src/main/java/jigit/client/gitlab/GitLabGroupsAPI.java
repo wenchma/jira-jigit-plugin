@@ -21,7 +21,7 @@ public final class GitLabGroupsAPI implements GroupAPI {
     private static final @NotNull Type LIST_OF_PROJECTS = new TypeToken<List<GitLabProject>>() {
     }.getType();
     @NotNull
-    private static final String API_PATH = "/api/v4/groups";
+    private static final String API_PATH = "/api/v3/groups";
     @NotNull
     private final GitLab gitLab;
 
